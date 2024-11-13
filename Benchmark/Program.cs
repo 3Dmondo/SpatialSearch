@@ -14,7 +14,7 @@ public class QuadTreeBenchmark
   public int N;
 
   private SimplePoint[]? Points;
-  private Vector128<double> testPoint;
+  private SimplePoint testPoint;
   private QuadTreeCell<SimplePoint>? TreeRoot;
 
   [GlobalSetup]

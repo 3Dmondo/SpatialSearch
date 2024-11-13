@@ -27,7 +27,7 @@ public class QuadTreeCellTests
         random.NextDouble() * size,
         random.NextDouble() * size))
       .ToList();
-    var testPoint = Vector128.Create(
+    SimplePoint testPoint = Vector128.Create(
       random.NextDouble() * size,
       random.NextDouble() * size);
     var expected = points.OrderBy(p => VectorExtensions.DistanceSquared(p, testPoint)).First();

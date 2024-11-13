@@ -5,8 +5,8 @@ namespace QuadTree;
 
 public class QuadTreeBuilder : IQuadTreeBuilder
 {
-  public static QuadTreeBuilder Instance { get; } = new QuadTreeBuilder();
   private QuadTreeBuilder() { }
+  public static QuadTreeBuilder Instance { get; } = new QuadTreeBuilder();
   public QuadTreeCell<T> Build<T>(IEnumerable<T> points)
     where T : IPoint
   {
