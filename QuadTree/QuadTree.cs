@@ -1,4 +1,4 @@
-﻿using System.Runtime.Intrinsics;
+﻿using QuadTree.Extensions;
 
 namespace QuadTree;
 

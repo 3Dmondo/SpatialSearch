@@ -1,4 +1,5 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using QuadTree.Extensions;
 using System.Runtime.Intrinsics;
 
 namespace QuadTree.Tests;

@@ -1,8 +1,6 @@
-﻿using System.Runtime.Intrinsics;
-
-namespace QuadTree;
-
+﻿namespace QuadTree;
 public interface IPoint
 {
-  Vector128<double> Point { get; }
+  double X { get; }
+  double Y { get; }
 }

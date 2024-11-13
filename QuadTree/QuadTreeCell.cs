@@ -1,4 +1,6 @@
-﻿using System.Runtime.Intrinsics;
+﻿using System.ComponentModel.DataAnnotations;
+using System.Runtime.Intrinsics;
+using QuadTree.Extensions;
 namespace QuadTree;
 public class QuadTreeCell<T> where T : IPoint
 {
@@ -36,7 +38,7 @@ public class QuadTreeCell<T> where T : IPoint
 
   private void AddToChild(T point)
   {
-    var gt = Vector128.GreaterThan(point.Point, Center).AsInt64();
+    var gt = Vector128.GreaterThan(point.ToVector128(), Center).AsInt64();
     var childIndex = Vector128.Sum(Base2Indices & gt);
     var child = Children[childIndex];
     if (null == child)
@@ -57,7 +59,7 @@ public class QuadTreeCell<T> where T : IPoint
       return (default, double.MaxValue);
 
     if (NumberOfPoints == 1)
-      return (InnerPoint, point.DistanceSquared(InnerPoint!.Point));
+      return (InnerPoint, point.DistanceSquared(InnerPoint!.ToVector128()));
 
     T? candidate = default;
 
@@ -67,15 +69,17 @@ public class QuadTreeCell<T> where T : IPoint
     if (null != child)
       (candidate, minDistanceSquared) = UpdateCandidateIfCloser(child, point, candidate, minDistanceSquared);
 
-
-    for (int i = 0; i < 4; i++)
-      if (i != childIndex && null != Children[i])
-        (candidate, minDistanceSquared) = UpdateCandidateIfCloser(Children[i], point, candidate, minDistanceSquared);
+    for (long i = 1; i < 4; i++)
+    {
+      var nextChildIndex = childIndex ^ i;
+      if (null != Children[nextChildIndex])
+        (candidate, minDistanceSquared) = UpdateCandidateIfCloser(Children[nextChildIndex], point, candidate, minDistanceSquared);
+    }
 
     return (candidate, minDistanceSquared);
   }
 
-  private static (T?candidate, double mindistanceSquared) UpdateCandidateIfCloser(
+  private static (T? candidate, double mindistanceSquared) UpdateCandidateIfCloser(
     QuadTreeCell<T> child,
     Vector128<double> point,
     T? candidate,
