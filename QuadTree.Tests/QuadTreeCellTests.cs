@@ -55,4 +55,23 @@ public class QuadTreeCellTests
     Assert.IsFalse(result);
     Assert.AreEqual(default, nearest.Point);
   }
+
+  [TestMethod]
+  public void FindNearestFar()
+  {
+    var random = new Random(42);
+    var points = Enumerable
+     .Range(0, 100)
+     .Select(_ => (SimplePoint)Vector128.Create(
+       random.NextDouble(),
+       random.NextDouble()))
+     .ToList();
+    var testPoint = (SimplePoint)Vector128.Create(20.0, 0.0);
+    var expected = points
+      .Select(p => (p, Math.Sqrt(VectorExtensions.DistanceSquared(p, testPoint))))
+      .OrderBy(p => p.Item2).First();
+    var treeRoot = QuadTreeBuilder.Instance.Build(points);
+    var nearest = treeRoot.FindNearest(testPoint);
+    Assert.AreEqual(expected, nearest);
+  }
 }
