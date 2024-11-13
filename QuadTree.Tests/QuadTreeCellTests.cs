@@ -22,16 +22,16 @@ public class QuadTreeCellTests
     var random = new Random(42);
     var points = Enumerable
       .Range(0, numberOfPoints)
-      .Select(_ => Vector128.Create(
-        random.NextDouble() * size, 
+      .Select(_ => (SimplePoint)Vector128.Create(
+        random.NextDouble() * size,
         random.NextDouble() * size))
       .ToList();
     var testPoint = Vector128.Create(
-      random.NextDouble() * size, 
+      random.NextDouble() * size,
       random.NextDouble() * size);
     var expected = points.OrderBy(p => VectorExtensions.DistanceSquared(p, testPoint)).First();
     var tree = QuadTree.BuildQadTree(points);
     var nearest = tree.FindNearest(testPoint);
     Assert.AreEqual(expected, nearest.Item1);
-  } 
+  }
 }

@@ -13,19 +13,21 @@ namespace QuadTree
       return Vector128.Dot(diff, diff);
     }
 
-    public static Vector128<double> Max(this IEnumerable<Vector128<double>> vectors)
+    public static Vector128<double> MaxCoordinates<T>(this IEnumerable<T> points)
+      where T : IPoint
     {
       var result = MinValue;
-      foreach (var vector in vectors)
-        result = Vector128.Max(result, vector);
+      foreach (var point in points)
+        result = Vector128.Max(result, point.Point);
       return result;
     }
 
-    public static Vector128<double> Min(this IEnumerable<Vector128<double>> vectors)
+    public static Vector128<double> MinCoordinates<T>(this IEnumerable<T> points)
+      where T : IPoint
     {
       var result = MaxValue;
-      foreach (var vector in vectors)
-        result = Vector128.Min(result, vector);
+      foreach (var point in points)
+        result = Vector128.Min(result, point.Point);
       return result;
     }
   }

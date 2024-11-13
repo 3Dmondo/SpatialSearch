@@ -1,8 +1,8 @@
 ﻿using System.Runtime.Intrinsics;
 namespace QuadTree;
-public class QuadTreeCell
+public class QuadTreeCell<T> where T : IPoint
 {
-  private QuadTreeCell[] Children { get; } = new QuadTreeCell[4];
+  private QuadTreeCell<T>[] Children { get; } = new QuadTreeCell<T>[4];
   private static readonly Vector128<long> Base2Indices = Vector128.Create(1L, 2L);
   private static readonly Vector128<long> One = Vector128.Create(1.0, 1.0).AsInt64();
   private static readonly Vector128<long> MinusOne = Vector128.Create(-1.0, -1.0).AsInt64();
@@ -12,7 +12,7 @@ public class QuadTreeCell
   public Vector128<double> Center { get; init; }
   public double Size { get; init; }
   public int NumberOfPoints { get; private set; }
-  public Vector128<double> InnerPoint { get; private set; }
+  public T? InnerPoint { get; private set; }
 
   public QuadTreeCell(Vector128<double> center, double size)
   {
@@ -21,7 +21,7 @@ public class QuadTreeCell
     RadiusSquared = Size * Size * 0.5;
   }
 
-  public void AddPoint(Vector128<double> point)
+  public void AddPoint(T point)
   {
     NumberOfPoints++;
     if (NumberOfPoints == 1)
@@ -30,62 +30,63 @@ public class QuadTreeCell
       return;
     }
     if (NumberOfPoints == 2)
-      AddToChild(InnerPoint);
+      AddToChild(InnerPoint!);
     AddToChild(point);
   }
 
-  private void AddToChild(Vector128<double> point)
+  private void AddToChild(T point)
   {
-    var gt = Vector128.GreaterThan(point, Center).AsInt64();
+    var gt = Vector128.GreaterThan(point.Point, Center).AsInt64();
     var childIndex = Vector128.Sum(Base2Indices & gt);
     var child = Children[childIndex];
     if (null == child)
     {
       var direction = (One & gt).AsDouble() + (MinusOne & ~gt).AsDouble();
       var childCenter = Center + direction * Size * 0.25;
-      child = new QuadTreeCell(childCenter, Size * 0.5);
+      child = new QuadTreeCell<T>(childCenter, Size * 0.5);
       Children[childIndex] = child;
     }
     child.AddPoint(point);
   }
 
-  public (Vector128<double>, double distanceSquared) FindNearest(Vector128<double> point, double minDistanceSquared = double.MaxValue)
+  public (T?, double distanceSquared) FindNearest(Vector128<double> point, double minDistanceSquared = double.MaxValue)
   {
     var distanceFromCenter = point.DistanceSquared(Center);
 
     if (distanceFromCenter > minDistanceSquared + RadiusSquared)
-      return (Vector128<double>.AllBitsSet, double.MaxValue);
+      return (default, double.MaxValue);
 
     if (NumberOfPoints == 1)
-      return (InnerPoint, point.DistanceSquared(InnerPoint));
+      return (InnerPoint, point.DistanceSquared(InnerPoint!.Point));
 
-    Vector128<double> candidate = Vector128<double>.AllBitsSet;
+    T? candidate = default;
 
     var gt = Vector128.GreaterThan(point, Center).AsInt64();
     var childIndex = Vector128.Sum(Base2Indices & gt);
     var child = Children[childIndex];
     if (null != child)
-    {
-      var (nextCandidate, distanceSquared) = child.FindNearest(point, minDistanceSquared);
-      if (distanceSquared < minDistanceSquared)
-      {
-        minDistanceSquared = distanceSquared;
-        candidate = nextCandidate;
-      }
-    }
+      (candidate, minDistanceSquared) = UpdateCandidateIfCloser(child, point, candidate, minDistanceSquared);
+
 
     for (int i = 0; i < 4; i++)
       if (i != childIndex && null != Children[i])
-      {
-        child = Children[i];
-        var (nextCandidate, distanceSquared) = child.FindNearest(point, minDistanceSquared);
-        if (distanceSquared < minDistanceSquared)
-        {
-          minDistanceSquared = distanceSquared;
-          candidate = nextCandidate;
-        }
-      }
+        (candidate, minDistanceSquared) = UpdateCandidateIfCloser(Children[i], point, candidate, minDistanceSquared);
 
+    return (candidate, minDistanceSquared);
+  }
+
+  private static (T?candidate, double mindistanceSquared) UpdateCandidateIfCloser(
+    QuadTreeCell<T> child,
+    Vector128<double> point,
+    T? candidate,
+    double minDistanceSquared)
+  {
+    var (nextCandidate, distanceSquared) = child.FindNearest(point, minDistanceSquared);
+    if (distanceSquared < minDistanceSquared)
+    {
+      minDistanceSquared = distanceSquared;
+      candidate = nextCandidate;
+    }
     return (candidate, minDistanceSquared);
   }
 }

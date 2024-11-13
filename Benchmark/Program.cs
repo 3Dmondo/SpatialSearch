@@ -12,14 +12,18 @@ public class QuadTreeBenchmark
   [Params(1000, 10000, 100000)]
   public int N;
 
-  private Vector128<double>[] Points;
+  private SimplePoint[]? Points;
   private Vector128<double> testPoint;
-  private QuadTreeCell Tree;
+  private QuadTreeCell<SimplePoint>? Tree;
 
   [GlobalSetup]
   public void GlobalSetup()
   {
-    Points = Enumerable.Range(0, N).Select(_ => Vector128.Create(Random.NextDouble(), Random.NextDouble())).ToArray();
+    Points = Enumerable
+      .Range(0, N)
+      .Select(_ => (SimplePoint)Vector128
+        .Create(Random.NextDouble(), Random.NextDouble()))
+      .ToArray();
     testPoint = Vector128.Create(Random.NextDouble(), Random.NextDouble());
     Tree = QuadTree.QuadTree.BuildQadTree(Points);
   }
@@ -27,20 +31,20 @@ public class QuadTreeBenchmark
   [Benchmark(Baseline = true)]
   public Vector128<double> FindNearestBase()
   {
-    return Points.OrderBy(p => VectorExtensions.DistanceSquared(p, testPoint)).First();
+    return Points!.OrderBy(p => VectorExtensions.DistanceSquared(p, testPoint)).First();
   }
 
   [Benchmark()]
   public Vector128<double> FindNearestQuadTreeWithInit()
   {
-    var tree = QuadTree.QuadTree.BuildQadTree(Points);
+    var tree = QuadTree.QuadTree.BuildQadTree(Points!);
     return tree.FindNearest(testPoint).Item1;
   }
 
   [Benchmark()]
   public Vector128<double> FindNearestQuadTreeInitialized()
   {
-    return Tree.FindNearest(testPoint).Item1;
+    return Tree!.FindNearest(testPoint).Item1;
   }
 
 }

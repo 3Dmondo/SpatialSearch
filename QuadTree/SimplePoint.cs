@@ -1,0 +1,12 @@
+﻿using System.Runtime.Intrinsics;
+
+namespace QuadTree
+{
+  public struct SimplePoint : IPoint
+  {
+    public Vector128<double> Point { get; init; }
+    public SimplePoint(Vector128<double> point) => Point = point;
+    public static implicit operator Vector128<double>(SimplePoint point) => point.Point;
+    public static implicit operator SimplePoint(Vector128<double> point) => new SimplePoint(point);
+  }
+}
