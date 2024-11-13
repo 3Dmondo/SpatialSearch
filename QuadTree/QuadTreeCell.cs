@@ -56,13 +56,22 @@ public class QuadTreeCell<T> : IQuadTreeCell<T> where T : IPoint
     child.AddPoint(point);
   }
 
-  public (T? Point, double Distance) FindNearest(IPoint point, double minDistance = double.MaxValue)
+  public bool TryFindNearest(IPoint point, double minDistance, out (T? Point, double Distance) nearest)
   {
     var result = FindNearest(point.ToVector128(), minDistance * minDistance);
-    return (result.Point, Math.Sqrt(result.DistanceSquared));
+    var distance = Math.Sqrt(result.DistanceSquared);
+    nearest = (result.Point, distance);
+    return distance < minDistance;
   }
 
-  private (T? Point, double DistanceSquared) FindNearest(Vector128<double> point, double minDistanceSquared = double.MaxValue)
+  public (T? Point, double Distance) FindNearest(IPoint point)
+  {
+    var result = FindNearest(point.ToVector128(), double.MaxValue);
+    var distance = Math.Sqrt(result.DistanceSquared);
+    return (result.Point, distance);
+  }
+
+  private (T? Point, double DistanceSquared) FindNearest(Vector128<double> point, double minDistanceSquared)
   {
     var distanceFromCenter = point.DistanceSquared(Center);
 

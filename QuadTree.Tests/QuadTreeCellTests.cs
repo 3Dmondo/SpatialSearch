@@ -1,5 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using QuadTree.Extensions;
+using System.Drawing;
 using System.Runtime.Intrinsics;
 
 namespace QuadTree.Tests;
@@ -36,5 +37,22 @@ public class QuadTreeCellTests
     var treeRoot = QuadTreeBuilder.Instance.Build(points);
     var nearest = treeRoot.FindNearest(testPoint);
     Assert.AreEqual(expected, nearest);
+  }
+
+  [TestMethod]
+  public void FindNearestMinDistance()
+  {
+    var random = new Random(42);
+    var points = Enumerable
+     .Range(0, 100)
+     .Select(_ => (SimplePoint)Vector128.Create(
+       random.NextDouble(),
+       random.NextDouble()))
+     .ToList();
+    var testPoint = (SimplePoint)Vector128.Create(2.0, 0.0);
+    var treeRoot = QuadTreeBuilder.Instance.Build(points);
+    var result = treeRoot.TryFindNearest(testPoint, 1.0, out var nearest);
+    Assert.IsFalse(result);
+    Assert.AreEqual(default, nearest.Point);
   }
 }

@@ -3,5 +3,6 @@
 public interface IQuadTreeCell<T> where T : IPoint
 {
   void AddPoint(T point);
-  (T? Point, double Distance) FindNearest(IPoint point, double minDistanceSquared = double.MaxValue);
+  (T? Point, double Distance) FindNearest(IPoint point);
+  bool TryFindNearest(IPoint point, double minDistance, out (T? Point, double Distance) nearest);
 }
