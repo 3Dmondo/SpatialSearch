@@ -1,4 +1,5 @@
-﻿using System.Runtime.Intrinsics;
+﻿using System.Runtime.CompilerServices;
+using System.Runtime.Intrinsics;
 using QuadTree.Abstractions;
 using QuadTree.Extensions;
 
@@ -96,6 +97,7 @@ public class QuadTreeCell<T> : IQuadTreeCell<T> where T : IPoint
     return candidate;
   }
 
+  [MethodImpl(MethodImplOptions.AggressiveInlining)]
   private static (T? candidate, double mindistanceSquared) UpdateCandidateIfCloser(
     QuadTreeCell<T> child,
     Vector128<double> point,

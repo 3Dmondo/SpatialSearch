@@ -10,7 +10,7 @@ BenchmarkRunner.Run<QuadTreeBenchmark>();
 public class QuadTreeBenchmark
 {
   Random Random = new Random(42);
-  [Params(1000, 10000, 100000)]
+  [Params(10_000, 100_000, 1_000_000)]
   public int N;
 
   private SimplePoint[]? Points;
