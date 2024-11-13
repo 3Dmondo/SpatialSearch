@@ -1,10 +1,13 @@
-﻿using QuadTree.Extensions;
+﻿using QuadTree.Abstractions;
+using QuadTree.Extensions;
 
 namespace QuadTree;
 
-public static class QuadTree
+public class QuadTreeBuilder : IQuadTreeBuilder
 {
-  public static QuadTreeCell<T> BuildQadTree<T>(IEnumerable<T> points)
+  public static QuadTreeBuilder Instance { get; } = new QuadTreeBuilder();
+  private QuadTreeBuilder() { }
+  public QuadTreeCell<T> Build<T>(IEnumerable<T> points)
     where T : IPoint
   {
     var max = points.MaxCoordinates();

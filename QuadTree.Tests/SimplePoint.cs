@@ -1,8 +1,9 @@
 ﻿using System.Runtime.Intrinsics;
+using QuadTree.Abstractions;
 
 namespace QuadTree.Tests
 {
-  public struct SimplePoint : IPoint
+    public struct SimplePoint : IPoint
   {
     private Vector128<double> Point { get; init; }
 

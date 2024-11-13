@@ -31,8 +31,8 @@ public class QuadTreeCellTests
       random.NextDouble() * size,
       random.NextDouble() * size);
     var expected = points.OrderBy(p => VectorExtensions.DistanceSquared(p, testPoint)).First();
-    var tree = QuadTree.BuildQadTree(points);
-    var nearest = tree.FindNearest(testPoint);
+    var treeRoot = QuadTreeBuilder.Instance.Build(points);
+    var nearest = treeRoot.FindNearest(testPoint);
     Assert.AreEqual(expected, nearest.Item1);
   }
 }

@@ -1,9 +1,10 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Runtime.Intrinsics;
+using QuadTree.Abstractions;
 
 namespace QuadTree.Extensions;
 
-public static class VectorExtensions
+internal static class VectorExtensions
 {
   static Vector128<double> MinValue = Vector128.Create(double.MinValue, double.MinValue);
   static Vector128<double> MaxValue = Vector128.Create(double.MaxValue, double.MaxValue);

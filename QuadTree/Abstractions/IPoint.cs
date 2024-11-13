@@ -1,4 +1,5 @@
-﻿namespace QuadTree;
+﻿namespace QuadTree.Abstractions;
+
 public interface IPoint
 {
   double X { get; }

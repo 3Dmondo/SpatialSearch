@@ -1,8 +1,8 @@
-﻿
-using BenchmarkDotNet.Attributes;
+﻿using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Running;
 using QuadTree;
 using QuadTree.Extensions;
+using QuadTree.Tests;
 using System.Runtime.Intrinsics;
 
 BenchmarkRunner.Run<QuadTreeBenchmark>();
@@ -15,7 +15,7 @@ public class QuadTreeBenchmark
 
   private SimplePoint[]? Points;
   private Vector128<double> testPoint;
-  private QuadTreeCell<SimplePoint>? Tree;
+  private QuadTreeCell<SimplePoint>? TreeRoot;
 
   [GlobalSetup]
   public void GlobalSetup()
@@ -26,7 +26,7 @@ public class QuadTreeBenchmark
         .Create(Random.NextDouble(), Random.NextDouble()))
       .ToArray();
     testPoint = Vector128.Create(Random.NextDouble(), Random.NextDouble());
-    Tree = QuadTree.QuadTree.BuildQadTree(Points);
+    TreeRoot = QuadTreeBuilder.Instance.Build(Points);
   }
 
   [Benchmark(Baseline = true)]
@@ -38,27 +38,14 @@ public class QuadTreeBenchmark
   [Benchmark()]
   public Vector128<double> FindNearestQuadTreeWithInit()
   {
-    var tree = QuadTree.QuadTree.BuildQadTree(Points!);
-    return tree.FindNearest(testPoint).Item1;
+    var treeRoot = QuadTreeBuilder.Instance.Build(Points!);
+    return treeRoot.FindNearest(testPoint).Item1;
   }
 
   [Benchmark()]
   public Vector128<double> FindNearestQuadTreeInitialized()
   {
-    return Tree!.FindNearest(testPoint).Item1;
+    return TreeRoot!.FindNearest(testPoint).Item1;
   }
 
-}
-
-public struct SimplePoint : IPoint
-{
-  private Vector128<double> Point { get; init; }
-
-  public double X => Point[0];
-
-  public double Y => Point[1];
-
-  public SimplePoint(Vector128<double> point) => Point = point;
-  public static implicit operator Vector128<double>(SimplePoint point) => point.Point;
-  public static implicit operator SimplePoint(Vector128<double> point) => new SimplePoint(point);
 }
