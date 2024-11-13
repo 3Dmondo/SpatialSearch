@@ -18,7 +18,7 @@ public class QuadTreeCell
   {
     Center = center;
     Size = size;
-    RadiusSquared = Size * Size * 0.25;
+    RadiusSquared = Size * Size * 0.5;
   }
 
   public void AddPoint(Vector128<double> point)
