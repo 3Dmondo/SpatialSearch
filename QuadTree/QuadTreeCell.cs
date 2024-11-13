@@ -42,8 +42,8 @@ public class QuadTreeCell
     if (null == child)
     {
       var direction = (One & gt).AsDouble() + (MinusOne & ~gt).AsDouble();
-      var childPosition = Center + direction * Size * 0.25;
-      child = new QuadTreeCell(childPosition, Size * 0.5);
+      var childCenter = Center + direction * Size * 0.25;
+      child = new QuadTreeCell(childCenter, Size * 0.5);
       Children[childIndex] = child;
     }
     child.AddPoint(point);
