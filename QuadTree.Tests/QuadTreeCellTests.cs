@@ -30,9 +30,11 @@ public class QuadTreeCellTests
     SimplePoint testPoint = Vector128.Create(
       random.NextDouble() * size,
       random.NextDouble() * size);
-    var expected = points.OrderBy(p => VectorExtensions.DistanceSquared(p, testPoint)).First();
+    var expected = points
+      .Select(p => (p, Math.Sqrt(VectorExtensions.DistanceSquared(p, testPoint))))
+      .OrderBy(p => p.Item2).First();
     var treeRoot = QuadTreeBuilder.Instance.Build(points);
     var nearest = treeRoot.FindNearest(testPoint);
-    Assert.AreEqual(expected, nearest.Item1);
+    Assert.AreEqual(expected, nearest);
   }
 }
