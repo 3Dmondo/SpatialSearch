@@ -22,7 +22,7 @@ public class QuadTree : INearestPointFinder
   }
 }
 
-public class QuadTree<T> : INearestPointFinder<T> where T : IPoint
+internal class QuadTree<T> : INearestPointFinder<T> where T : IPoint
 {
   private static readonly Vector128<long> Base2Indices = Vector128.Create(1L, 2L);
   private static readonly Vector128<long> One = Vector128.Create(1.0, 1.0).AsInt64();
