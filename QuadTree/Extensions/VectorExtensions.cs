@@ -16,6 +16,10 @@ internal static class VectorExtensions
     return Vector128.Dot(diff, diff);
   }
 
+  [MethodImpl(MethodImplOptions.AggressiveInlining)]
+  public static double Distance(this Vector128<double> a, Vector128<double> b)
+    => Math.Sqrt(DistanceSquared(a, b));
+
   public static Vector128<double> MaxCoordinates<T>(this IEnumerable<T> points)
     where T : IPoint
   {
