@@ -2,6 +2,7 @@
 using System.Runtime.Intrinsics;
 using QuadTree.Abstractions;
 using QuadTree.Extensions;
+using SpatialSearch.Abstractions;
 
 namespace QuadTree;
 

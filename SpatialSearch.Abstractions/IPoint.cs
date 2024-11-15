@@ -1,4 +1,4 @@
-﻿namespace QuadTree.Abstractions;
+﻿namespace SpatialSearch.Abstractions;
 
 public interface IPoint
 {
