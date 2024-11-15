@@ -1,11 +1,13 @@
 ﻿using NUnit.Framework;
+using SpatialSearch.Abstractions;
 using SpatialSearch.Extensions;
 using System.Runtime.Intrinsics;
 
 namespace SpatialSearch.Tests;
 
-[TestFixture]
-public class SpatialSearchTests
+[TestFixture(typeof(QuadTree))]
+public class INearestPointFinderTests<T>
+  where T : INearestPointFinder
 {
 
   [Test, Combinatorial]
@@ -21,7 +23,7 @@ public class SpatialSearchTests
         random.NextDouble() * size,
         random.NextDouble() * size))
       .ToList();
-    var treeRoot = QuadTreeBuilder.Instance.Build(points);
+    var treeRoot = T.Build(points);
     int Tries = 10;
     while (Tries-- > 0)
     {
@@ -47,7 +49,7 @@ public class SpatialSearchTests
        random.NextDouble()))
      .ToList();
     var testPoint = (SimplePoint)Vector128.Create(2.0, 0.0);
-    var treeRoot = QuadTreeBuilder.Instance.Build(points);
+    var treeRoot = T.Build(points);
     var result = treeRoot.TryFindNearest(testPoint, 1.0, out var nearest);
     Assert.That(result, Is.False);
     Assert.That(nearest.Point, Is.Default);
@@ -68,7 +70,7 @@ public class SpatialSearchTests
     var expected = points
       .Select(p => (p, Math.Sqrt(VectorExtensions.DistanceSquared(p, testPoint))))
       .OrderBy(p => p.Item2).First();
-    var treeRoot = QuadTreeBuilder.Instance.Build(points);
+    var treeRoot = T.Build(points);
     var nearest = treeRoot.FindNearest(testPoint);
     Assert.That(nearest, Is.EqualTo(expected));
   }

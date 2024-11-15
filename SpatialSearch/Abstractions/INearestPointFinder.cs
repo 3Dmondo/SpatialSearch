@@ -1,11 +1,17 @@
 ﻿namespace SpatialSearch.Abstractions;
 
+public interface INearestPointFinder
+{
+  abstract static INearestPointFinder<T> Build<T>(IEnumerable<T> points) where T : IPoint;
+}
+
 /// <summary>
 /// Interface for finding the nearest point to a given point in a set of points in two dimensions.
 /// </summary>
 /// <typeparam name="T">The type of the points in the set.</typeparam>
 public interface INearestPointFinder<T>
 {
+
   /// <summary>
   /// Finds the nearest point to the specified point.
   /// </summary>

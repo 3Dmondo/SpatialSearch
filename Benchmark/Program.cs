@@ -1,6 +1,7 @@
 ﻿using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Running;
 using SpatialSearch;
+using SpatialSearch.Abstractions;
 using SpatialSearch.Extensions;
 using SpatialSearch.Tests;
 using System.Runtime.Intrinsics;
@@ -15,7 +16,7 @@ public class QuadTreeBenchmark
 
   private SimplePoint[]? Points;
   private SimplePoint testPoint;
-  private QuadTreeCell<SimplePoint>? TreeRoot;
+  private INearestPointFinder<SimplePoint>? TreeRoot;
 
   [GlobalSetup]
   public void GlobalSetup()
@@ -26,7 +27,7 @@ public class QuadTreeBenchmark
         .Create(Random.NextDouble(), Random.NextDouble()))
       .ToArray();
     testPoint = Vector128.Create(Random.NextDouble(), Random.NextDouble());
-    TreeRoot = QuadTreeBuilder.Instance.Build(Points);
+    TreeRoot = QuadTree.Build(Points);
   }
 
   [Benchmark(Baseline = true)]
@@ -38,7 +39,7 @@ public class QuadTreeBenchmark
   [Benchmark()]
   public Vector128<double> FindNearestQuadTreeWithInit()
   {
-    var treeRoot = QuadTreeBuilder.Instance.Build(Points!);
+    var treeRoot = QuadTree.Build(Points!);
     return treeRoot.FindNearest(testPoint).Item1;
   }
 

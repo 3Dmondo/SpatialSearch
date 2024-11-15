@@ -5,13 +5,30 @@ using SpatialSearch.Extensions;
 
 namespace SpatialSearch;
 
-public class QuadTreeCell<T> : IQuadTreeCell<T> where T : IPoint
+public class QuadTree : INearestPointFinder
+{
+  public static INearestPointFinder<T> Build<T>(IEnumerable<T> points)
+  where T : IPoint
+  {
+    var max = points.MaxCoordinates();
+    var min = points.MinCoordinates();
+    var center = (max + min) * 0.5;
+    var size2 = max - min;
+    var size = Math.Max(size2[0], size2[1]);
+    var root = new QuadTree<T>(center, size);
+    foreach (var point in points)
+      root.AddPoint(point);
+    return root;
+  }
+}
+
+public class QuadTree<T> : INearestPointFinder<T> where T : IPoint
 {
   private static readonly Vector128<long> Base2Indices = Vector128.Create(1L, 2L);
   private static readonly Vector128<long> One = Vector128.Create(1.0, 1.0).AsInt64();
   private static readonly Vector128<long> MinusOne = Vector128.Create(-1.0, -1.0).AsInt64();
 
-  private readonly QuadTreeCell<T>[] Children = new QuadTreeCell<T>[4];
+  private readonly QuadTree<T>[] Children = new QuadTree<T>[4];
   private readonly double Radius;
   private readonly Vector128<double> Center;
   private readonly double Size;
@@ -20,7 +37,7 @@ public class QuadTreeCell<T> : IQuadTreeCell<T> where T : IPoint
   private T? InnerPoint;
   private Vector128<double> InnerPointVector;
 
-  public QuadTreeCell(Vector128<double> center, double size)
+  internal QuadTree(Vector128<double> center, double size)
   {
     Center = center;
     Size = size;
@@ -50,7 +67,7 @@ public class QuadTreeCell<T> : IQuadTreeCell<T> where T : IPoint
     {
       var direction = (One & gt).AsDouble() + (MinusOne & ~gt).AsDouble();
       var childCenter = Center + direction * Size * 0.25;
-      child = new QuadTreeCell<T>(childCenter, Size * 0.5);
+      child = new QuadTree<T>(childCenter, Size * 0.5);
       Children[childIndex] = child;
     }
     child.AddPoint(point);
@@ -109,7 +126,7 @@ public class QuadTreeCell<T> : IQuadTreeCell<T> where T : IPoint
 
   [MethodImpl(MethodImplOptions.AggressiveInlining)]
   private static (T? candidate, double mindistance) UpdateCandidateIfCloser(
-    QuadTreeCell<T> child,
+    QuadTree<T> child,
     Vector128<double> point,
     (T?, double Distance) candidate)
   {
