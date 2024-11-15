@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\QuadTree\QuadTree.csproj" />
+    <ProjectReference Include="..\SpatialSearch\SpatialSearch.csproj" />
   </ItemGroup>
 
 </Project>

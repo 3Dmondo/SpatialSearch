@@ -13,7 +13,4 @@
       <_Parameter1>Benchmark</_Parameter1>
     </AssemblyAttribute>
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\SpatialSearch.Abstractions\SpatialSearch.Abstractions.csproj" />
-  </ItemGroup>
 </Project>
