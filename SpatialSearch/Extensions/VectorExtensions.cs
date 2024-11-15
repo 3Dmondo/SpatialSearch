@@ -2,7 +2,7 @@
 using System.Runtime.Intrinsics;
 using SpatialSearch.Abstractions;
 
-namespace QuadTree.Extensions;
+namespace SpatialSearch.Extensions;
 
 internal static class VectorExtensions
 {

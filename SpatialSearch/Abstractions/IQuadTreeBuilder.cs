@@ -1,6 +1,4 @@
-﻿using SpatialSearch.Abstractions;
-
-namespace QuadTree.Abstractions;
+﻿namespace SpatialSearch.Abstractions;
 
 public interface IQuadTreeBuilder
 {

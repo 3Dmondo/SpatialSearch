@@ -1,8 +1,7 @@
-﻿using QuadTree.Abstractions;
-using QuadTree.Extensions;
-using SpatialSearch.Abstractions;
+﻿using SpatialSearch.Abstractions;
+using SpatialSearch.Extensions;
 
-namespace QuadTree;
+namespace SpatialSearch;
 
 public class QuadTreeBuilder : IQuadTreeBuilder
 {

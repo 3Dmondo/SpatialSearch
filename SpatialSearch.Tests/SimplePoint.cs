@@ -1,7 +1,7 @@
 ﻿using System.Runtime.Intrinsics;
 using SpatialSearch.Abstractions;
 
-namespace QuadTree.Tests
+namespace SpatialSearch.Tests
 {
   public struct SimplePoint : IPoint
   {

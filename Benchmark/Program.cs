@@ -1,8 +1,8 @@
 ﻿using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Running;
-using QuadTree;
-using QuadTree.Extensions;
-using QuadTree.Tests;
+using SpatialSearch;
+using SpatialSearch.Extensions;
+using SpatialSearch.Tests;
 using System.Runtime.Intrinsics;
 
 BenchmarkRunner.Run<QuadTreeBenchmark>();

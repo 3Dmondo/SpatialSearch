@@ -1,11 +1,11 @@
 ﻿using NUnit.Framework;
-using QuadTree.Extensions;
+using SpatialSearch.Extensions;
 using System.Runtime.Intrinsics;
 
-namespace QuadTree.Tests;
+namespace SpatialSearch.Tests;
 
 [TestFixture]
-public class QuadTreeCellTests
+public class SpatialSearchTests
 {
 
   [Test, Combinatorial]

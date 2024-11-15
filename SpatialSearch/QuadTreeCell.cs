@@ -1,10 +1,9 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Runtime.Intrinsics;
-using QuadTree.Abstractions;
-using QuadTree.Extensions;
 using SpatialSearch.Abstractions;
+using SpatialSearch.Extensions;
 
-namespace QuadTree;
+namespace SpatialSearch;
 
 public class QuadTreeCell<T> : IQuadTreeCell<T> where T : IPoint
 {
