@@ -3,16 +3,16 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.11.35327.3
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuadTree", "QuadTree\QuadTree.csproj", "{8F4C10EF-6501-442F-9DA1-94DD4099A521}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuadTree.Tests", "QuadTree.Tests\QuadTree.Tests.csproj", "{8B6DF5CB-F4E1-4AC0-9AFA-F6CB98236A07}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Benchmark", "Benchmark\Benchmark.csproj", "{8F863DED-525B-4078-B3CF-E9B6AB4698B9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Benchmark", "Benchmark\Benchmark.csproj", "{8F863DED-525B-4078-B3CF-E9B6AB4698B9}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{CC2C6EEB-34FC-4B3C-81FD-5A6FE970BAD9}"
 	ProjectSection(SolutionItems) = preProject
 		README.md = README.md
 	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SpatialSearch", "SpatialSearch\SpatialSearch.csproj", "{BC32B037-004E-48D4-AD22-02BD43D40757}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SpatialSearch.Tests", "SpatialSearch.Tests\SpatialSearch.Tests.csproj", "{58537309-E203-4760-BE55-61C68A42F2E5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -20,18 +20,18 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{8F4C10EF-6501-442F-9DA1-94DD4099A521}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8F4C10EF-6501-442F-9DA1-94DD4099A521}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8F4C10EF-6501-442F-9DA1-94DD4099A521}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8F4C10EF-6501-442F-9DA1-94DD4099A521}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8B6DF5CB-F4E1-4AC0-9AFA-F6CB98236A07}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8B6DF5CB-F4E1-4AC0-9AFA-F6CB98236A07}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8B6DF5CB-F4E1-4AC0-9AFA-F6CB98236A07}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8B6DF5CB-F4E1-4AC0-9AFA-F6CB98236A07}.Release|Any CPU.Build.0 = Release|Any CPU
 		{8F863DED-525B-4078-B3CF-E9B6AB4698B9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{8F863DED-525B-4078-B3CF-E9B6AB4698B9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8F863DED-525B-4078-B3CF-E9B6AB4698B9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8F863DED-525B-4078-B3CF-E9B6AB4698B9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BC32B037-004E-48D4-AD22-02BD43D40757}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BC32B037-004E-48D4-AD22-02BD43D40757}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BC32B037-004E-48D4-AD22-02BD43D40757}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BC32B037-004E-48D4-AD22-02BD43D40757}.Release|Any CPU.Build.0 = Release|Any CPU
+		{58537309-E203-4760-BE55-61C68A42F2E5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{58537309-E203-4760-BE55-61C68A42F2E5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{58537309-E203-4760-BE55-61C68A42F2E5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{58537309-E203-4760-BE55-61C68A42F2E5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

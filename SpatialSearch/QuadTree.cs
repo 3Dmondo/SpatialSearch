@@ -1,18 +1,35 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Runtime.Intrinsics;
-using QuadTree.Abstractions;
-using QuadTree.Extensions;
+using SpatialSearch.Abstractions;
+using SpatialSearch.Extensions;
 
-namespace QuadTree;
+namespace SpatialSearch;
 
-public class QuadTreeCell<T> : IQuadTreeCell<T> where T : IPoint
+public class QuadTree : INearestPointFinder
+{
+  public static INearestPointFinder<T> Build<T>(IEnumerable<T> points)
+  where T : IPoint
+  {
+    var max = points.MaxCoordinates();
+    var min = points.MinCoordinates();
+    var center = (max + min) * 0.5;
+    var size2 = max - min;
+    var size = Math.Max(size2[0], size2[1]);
+    var root = new QuadTree<T>(center, size);
+    foreach (var point in points)
+      root.AddPoint(point);
+    return root;
+  }
+}
+
+internal class QuadTree<T> : INearestPointFinder<T> where T : IPoint
 {
   private static readonly Vector128<long> Base2Indices = Vector128.Create(1L, 2L);
   private static readonly Vector128<long> One = Vector128.Create(1.0, 1.0).AsInt64();
   private static readonly Vector128<long> MinusOne = Vector128.Create(-1.0, -1.0).AsInt64();
 
-  private readonly QuadTreeCell<T>[] Children = new QuadTreeCell<T>[4];
-  private readonly double RadiusSquared;
+  private readonly QuadTree<T>[] Children = new QuadTree<T>[4];
+  private readonly double Radius;
   private readonly Vector128<double> Center;
   private readonly double Size;
 
@@ -20,11 +37,11 @@ public class QuadTreeCell<T> : IQuadTreeCell<T> where T : IPoint
   private T? InnerPoint;
   private Vector128<double> InnerPointVector;
 
-  public QuadTreeCell(Vector128<double> center, double size)
+  internal QuadTree(Vector128<double> center, double size)
   {
     Center = center;
     Size = size;
-    RadiusSquared = Size * Size * 0.5;
+    Radius = Math.Sqrt(Size * Size * 0.5);
   }
 
   public void AddPoint(T point)
@@ -50,7 +67,7 @@ public class QuadTreeCell<T> : IQuadTreeCell<T> where T : IPoint
     {
       var direction = (One & gt).AsDouble() + (MinusOne & ~gt).AsDouble();
       var childCenter = Center + direction * Size * 0.25;
-      child = new QuadTreeCell<T>(childCenter, Size * 0.5);
+      child = new QuadTree<T>(childCenter, Size * 0.5);
       Children[childIndex] = child;
     }
     child.AddPoint(point);
@@ -58,30 +75,31 @@ public class QuadTreeCell<T> : IQuadTreeCell<T> where T : IPoint
 
   public bool TryFindNearest(IPoint point, double minDistance, out (T? Point, double Distance) nearest)
   {
-    var result = FindNearest(point.ToVector128(), minDistance * minDistance);
-    var distance = Math.Sqrt(result.DistanceSquared);
-    nearest = (result.Point, distance);
-    return distance < minDistance;
+    nearest = FindNearest(point.ToVector128(), minDistance);
+    if (nearest.Distance < minDistance)
+      return true;
+    nearest = (default, double.MaxValue);
+    return false;
   }
 
-  public (T? Point, double Distance) FindNearest(IPoint point)
+  public (T Point, double Distance) FindNearest(IPoint point)
   {
     var result = FindNearest(point.ToVector128(), double.MaxValue);
-    var distance = Math.Sqrt(result.DistanceSquared);
-    return (result.Point, distance);
+    return (result.Point!, result.Distance);
   }
 
-  private (T? Point, double DistanceSquared) FindNearest(Vector128<double> point, double minDistanceSquared)
+  private (T? Point, double Distance) FindNearest(Vector128<double> point, double minDistance)
   {
     var distanceFromCenter = point.DistanceSquared(Center);
-
-    if (distanceFromCenter > minDistanceSquared + RadiusSquared)
+    var maxDistanceSquared = minDistance + Radius;
+    maxDistanceSquared *= maxDistanceSquared;
+    if (distanceFromCenter > maxDistanceSquared)
       return (default, double.MaxValue);
 
     if (NumberOfPoints == 1)
-      return (InnerPoint, point.DistanceSquared(InnerPointVector));
+      return (InnerPoint, point.Distance(InnerPointVector));
 
-    (T?, double) candidate = (default, minDistanceSquared);
+    (T?, double) candidate = (default, minDistance);
 
     var gt = Vector128.GreaterThan(point, Center).AsInt64();
     var childIndex = Vector128.Sum(Base2Indices & gt);
@@ -107,14 +125,14 @@ public class QuadTreeCell<T> : IQuadTreeCell<T> where T : IPoint
   }
 
   [MethodImpl(MethodImplOptions.AggressiveInlining)]
-  private static (T? candidate, double mindistanceSquared) UpdateCandidateIfCloser(
-    QuadTreeCell<T> child,
+  private static (T? candidate, double mindistance) UpdateCandidateIfCloser(
+    QuadTree<T> child,
     Vector128<double> point,
-    (T?, double DistanceSquared) candidate)
+    (T?, double Distance) candidate)
   {
     var nextCandidate = child
-      .FindNearest(point, candidate.DistanceSquared);
-    if (nextCandidate.DistanceSquared < candidate.DistanceSquared)
+      .FindNearest(point, candidate.Distance);
+    if (nextCandidate.Distance < candidate.Distance)
       candidate = nextCandidate;
     return candidate;
   }

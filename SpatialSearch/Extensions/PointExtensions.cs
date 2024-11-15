@@ -1,8 +1,8 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Runtime.Intrinsics;
-using QuadTree.Abstractions;
+using SpatialSearch.Abstractions;
 
-namespace QuadTree.Extensions;
+namespace SpatialSearch.Extensions;
 
 internal static class PointExtensions
 {

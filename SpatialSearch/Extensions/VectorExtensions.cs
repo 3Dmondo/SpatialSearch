@@ -1,8 +1,8 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Runtime.Intrinsics;
-using QuadTree.Abstractions;
+using SpatialSearch.Abstractions;
 
-namespace QuadTree.Extensions;
+namespace SpatialSearch.Extensions;
 
 internal static class VectorExtensions
 {
@@ -15,6 +15,10 @@ internal static class VectorExtensions
     var diff = Vector128.Subtract(a, b);
     return Vector128.Dot(diff, diff);
   }
+
+  [MethodImpl(MethodImplOptions.AggressiveInlining)]
+  public static double Distance(this Vector128<double> a, Vector128<double> b)
+    => Math.Sqrt(DistanceSquared(a, b));
 
   public static Vector128<double> MaxCoordinates<T>(this IEnumerable<T> points)
     where T : IPoint
