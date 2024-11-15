@@ -9,6 +9,7 @@ namespace SpatialSearch.Tests;
 public class INearestPointFinderTests<T>
   where T : INearestPointFinder
 {
+  private const int Iterations = 10;
 
   [Test, Combinatorial]
   public void FindNearest(
@@ -24,8 +25,8 @@ public class INearestPointFinderTests<T>
         random.NextDouble() * size))
       .ToList();
     var treeRoot = T.Build(points);
-    int Tries = 10;
-    while (Tries-- > 0)
+    int iteration = 0;
+    while (iteration++ < Iterations)
     {
       SimplePoint testPoint = Vector128.Create(
         random.NextDouble() * size,
@@ -34,7 +35,7 @@ public class INearestPointFinderTests<T>
         .Select(p => (p, Math.Sqrt(VectorExtensions.DistanceSquared(p, testPoint))))
         .OrderBy(p => p.Item2).First();
       var nearest = treeRoot.FindNearest(testPoint);
-      Assert.That(nearest, Is.EqualTo(expected), $"Failed at the {Tries} iteration");
+      Assert.That(nearest, Is.EqualTo(expected), $"Failed at iteration {iteration}");
     }
   }
 

@@ -14,5 +14,7 @@ namespace SpatialSearch.Tests
     public SimplePoint(Vector128<double> point) => Point = point;
     public static implicit operator Vector128<double>(SimplePoint point) => point.Point;
     public static implicit operator SimplePoint(Vector128<double> point) => new SimplePoint(point);
+
+    public override string ToString() => Point.ToString();
   }
 }
