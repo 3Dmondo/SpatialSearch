@@ -1,6 +1,4 @@
 # QuadTree
-// * Summary *
-
 BenchmarkDotNet v0.14.0, Windows 11 (10.0.22621.4317/22H2/2022Update/SunValley2)
 AMD Ryzen 9 5900X, 1 CPU, 24 logical and 12 physical cores
 .NET SDK 8.0.403
@@ -8,16 +6,18 @@ AMD Ryzen 9 5900X, 1 CPU, 24 logical and 12 physical cores
   DefaultJob : .NET 8.0.10 (8.0.1024.46610), X64 RyuJIT AVX2
 
 
-| Method                         | N      | Mean             | Error          | StdDev         | Ratio   | RatioSD |
-|------------------------------- |------- |-----------------:|---------------:|---------------:|--------:|--------:|
-| FindNearestBase                | 1000   |      3,047.73 ns |       6.662 ns |       5.201 ns |    1.00 |    0.00 |
-| FindNearestQuadTreeWithInit    | 1000   |     66,257.53 ns |   1,098.881 ns |   1,027.894 ns |   21.74 |    0.33 |
-| FindNearestQuadTreeInitialized | 1000   |         87.17 ns |       0.203 ns |       0.180 ns |    0.03 |    0.00 |
-|                                |        |                  |                |                |         |         |
-| FindNearestBase                | 10000  |     29,885.30 ns |     198.324 ns |     185.512 ns |   1.000 |    0.01 |
-| FindNearestQuadTreeWithInit    | 10000  |  1,047,466.58 ns |   6,878.796 ns |   5,744.106 ns |  35.051 |    0.28 |
-| FindNearestQuadTreeInitialized | 10000  |        137.52 ns |       0.417 ns |       0.370 ns |   0.005 |    0.00 |
-|                                |        |                  |                |                |         |         |
-| FindNearestBase                | 100000 |    319,462.15 ns |   1,127.905 ns |     999.858 ns |   1.000 |    0.00 |
-| FindNearestQuadTreeWithInit    | 100000 | 32,065,242.28 ns | 562,314.233 ns | 577,455.318 ns | 100.373 |    1.78 |
-| FindNearestQuadTreeInitialized | 100000 |        132.63 ns |       0.477 ns |       0.423 ns |   0.000 |    0.00 |
+| Method                         | N       | Mean             | Error            | StdDev           | Ratio   | RatioSD |
+|------------------------------- |-------- |-----------------:|-----------------:|-----------------:|--------:|--------:|
+| FindNearestBase                | 10000   |      31,845.5 ns |        137.09 ns |        114.48 ns |   1.000 |    0.00 |
+| FindNearestQuadTreeWithInit    | 10000   |   1,076,499.9 ns |     18,976.78 ns |     25,975.64 ns |  33.804 |    0.81 |
+| FindNearestQuadTreeInitialized | 10000   |         182.9 ns |          0.83 ns |          0.65 ns |   0.006 |    0.00 |
+|                                |         |                  |                  |                  |         |
+|
+| FindNearestBase                | 100000  |     317,737.8 ns |      1,435.25 ns |      1,198.50 ns |   1.000 |    0.01 |
+| FindNearestQuadTreeWithInit    | 100000  |  33,322,158.2 ns |    630,896.65 ns |    675,052.34 ns | 104.875 |    2.10 |
+| FindNearestQuadTreeInitialized | 100000  |         215.9 ns |          2.02 ns |          1.79 ns |   0.001 |    0.00 |
+|                                |         |                  |                  |                  |         |
+|
+| FindNearestBase                | 1000000 |   3,174,353.4 ns |      7,262.65 ns |      6,793.49 ns |   1.000 |    0.00 |
+| FindNearestQuadTreeWithInit    | 1000000 | 798,747,106.7 ns | 15,368,853.15 ns | 14,376,034.78 ns | 251.626 |    4.42 |
+| FindNearestQuadTreeInitialized | 1000000 |         342.9 ns |          1.96 ns |          1.73 ns |   0.000 |    0.00 |

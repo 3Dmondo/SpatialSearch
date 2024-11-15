@@ -1,4 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using QuadTree.Extensions;
+using System.Drawing;
 using System.Runtime.Intrinsics;
 
 namespace QuadTree.Tests;
@@ -22,16 +24,54 @@ public class QuadTreeCellTests
     var random = new Random(42);
     var points = Enumerable
       .Range(0, numberOfPoints)
-      .Select(_ => Vector128.Create(
-        random.NextDouble() * size, 
+      .Select(_ => (SimplePoint)Vector128.Create(
+        random.NextDouble() * size,
         random.NextDouble() * size))
       .ToList();
-    var testPoint = Vector128.Create(
-      random.NextDouble() * size, 
+    SimplePoint testPoint = Vector128.Create(
+      random.NextDouble() * size,
       random.NextDouble() * size);
-    var expected = points.OrderBy(p => VectorExtensions.DistanceSquared(p, testPoint)).First();
-    var tree = QuadTree.BuildQadTree(points);
-    var nearest = tree.FindNearest(testPoint);
-    Assert.AreEqual(expected, nearest.Item1);
-  } 
+    var expected = points
+      .Select(p => (p, Math.Sqrt(VectorExtensions.DistanceSquared(p, testPoint))))
+      .OrderBy(p => p.Item2).First();
+    var treeRoot = QuadTreeBuilder.Instance.Build(points);
+    var nearest = treeRoot.FindNearest(testPoint);
+    Assert.AreEqual(expected, nearest);
+  }
+
+  [TestMethod]
+  public void FindNearestMinDistance()
+  {
+    var random = new Random(42);
+    var points = Enumerable
+     .Range(0, 100)
+     .Select(_ => (SimplePoint)Vector128.Create(
+       random.NextDouble(),
+       random.NextDouble()))
+     .ToList();
+    var testPoint = (SimplePoint)Vector128.Create(2.0, 0.0);
+    var treeRoot = QuadTreeBuilder.Instance.Build(points);
+    var result = treeRoot.TryFindNearest(testPoint, 1.0, out var nearest);
+    Assert.IsFalse(result);
+    Assert.AreEqual(default, nearest.Point);
+  }
+
+  [TestMethod]
+  public void FindNearestFar()
+  {
+    var random = new Random(42);
+    var points = Enumerable
+     .Range(0, 100)
+     .Select(_ => (SimplePoint)Vector128.Create(
+       random.NextDouble(),
+       random.NextDouble()))
+     .ToList();
+    var testPoint = (SimplePoint)Vector128.Create(20.0, 0.0);
+    var expected = points
+      .Select(p => (p, Math.Sqrt(VectorExtensions.DistanceSquared(p, testPoint))))
+      .OrderBy(p => p.Item2).First();
+    var treeRoot = QuadTreeBuilder.Instance.Build(points);
+    var nearest = treeRoot.FindNearest(testPoint);
+    Assert.AreEqual(expected, nearest);
+  }
 }

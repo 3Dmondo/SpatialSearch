@@ -12,6 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\QuadTree.Tests\QuadTree.Tests.csproj" />
     <ProjectReference Include="..\QuadTree\QuadTree.csproj" />
   </ItemGroup>
 
