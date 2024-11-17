@@ -6,6 +6,7 @@ using System.Runtime.Intrinsics;
 namespace SpatialSearch.Tests;
 
 [TestFixture(typeof(QuadTree))]
+[TestFixture(typeof(KDTree))]
 public class INearestPointFinderTests<TNearestPointFinder>
   where TNearestPointFinder : INearestPointFinder
 {
