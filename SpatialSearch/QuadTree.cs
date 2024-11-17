@@ -88,7 +88,7 @@ internal class QuadTree<T> : ISpatialSearch<T> where T : IPoint
     return (result.Point!, result.Distance);
   }
 
-  public IEnumerable<(T Point, double Distance)> FindRange(IPoint point, double radious)
+  public IEnumerable<(T Point, double Distance)> FindInRadius(IPoint point, double radius)
   {
     var stack = new Stack<QuadTree<T>>();
     stack.Push(this);
@@ -99,13 +99,13 @@ internal class QuadTree<T> : ISpatialSearch<T> where T : IPoint
       if (node.NumberOfPoints == 1)
       {
         var distance = vector.Distance(node.InnerPointVector);
-        if (distance < radious)
+        if (distance < radius)
           yield return (node.InnerPoint!, distance);
       }
       else
       {
         var distance = vector.Distance(node.Center);
-        if (distance < radious + node.Radius)
+        if (distance < radius + node.Radius)
           foreach (var child in node.Children)
             if (null != child)
               stack.Push(child);
@@ -118,6 +118,7 @@ internal class QuadTree<T> : ISpatialSearch<T> where T : IPoint
     var distanceFromCenter = point.DistanceSquared(Center);
     var maxDistanceSquared = minDistance + Radius;
     maxDistanceSquared *= maxDistanceSquared;
+
     if (distanceFromCenter > maxDistanceSquared)
       return (default, double.MaxValue);
 

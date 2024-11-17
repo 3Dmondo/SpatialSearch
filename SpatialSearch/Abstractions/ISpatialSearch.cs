@@ -28,5 +28,5 @@ public interface ISpatialSearch<T>
   /// <returns>True if a point is found within the minimum distance; otherwise, false.</returns>
   bool TryFindNearest(IPoint point, double minDistance, out (T? Point, double Distance) nearest);
 
-  IEnumerable<(T Point, double Distance)> FindRange(IPoint point, double radious);
+  IEnumerable<(T Point, double Distance)> FindInRadius(IPoint point, double radius);
 }

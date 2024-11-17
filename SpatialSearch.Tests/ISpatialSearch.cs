@@ -74,7 +74,7 @@ public class ISpatialSearch<TSpatialSearch>
         random.NextDouble() * size,
         random.NextDouble() * size);
       var expectedValues = FindRange(points, testPoint, range);
-      var values = treeRoot.FindRange(testPoint, range);
+      var values = treeRoot.FindInRadius(testPoint, range);
       Assert.That(values, Is.EquivalentTo(expectedValues), $"Failed at iteration {iteration}");
     }
   }

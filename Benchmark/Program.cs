@@ -20,6 +20,7 @@ public class FindNearestBenchmark
   private SimplePoint testPoint;
   private SpatialSearch.Abstractions.ISpatialSearch<SimplePoint>? QuadTreeRoot;
   private SpatialSearch.Abstractions.ISpatialSearch<SimplePoint>? KDTreeRoot;
+  private SpatialSearch.Abstractions.ISpatialSearch<SimplePoint>? KDTreeRootOptimized;
 
   [GlobalSetup]
   public void GlobalSetup()
@@ -32,21 +33,22 @@ public class FindNearestBenchmark
     testPoint = Vector128.Create(Random.NextDouble(), Random.NextDouble());
     QuadTreeRoot = QuadTree.Build(Points);
     KDTreeRoot = KDTree.Build(Points);
+    KDTreeRootOptimized = KDTree.Build(Points);
   }
 
-  [Benchmark()]
+  //[Benchmark()]
   public Vector128<double> FindNearestLinear()
   {
     return Points!.OrderBy(p => VectorExtensions.DistanceSquared(p, testPoint)).First();
   }
 
-  [Benchmark()]
+  //[Benchmark()]
   public Vector128<double> FindNearestQuadTree()
   {
     return QuadTreeRoot!.FindNearest(testPoint).Item1;
   }
 
-  [Benchmark()]
+  //[Benchmark()]
   public Vector128<double> FindNearestKDTree()
   {
     return KDTreeRoot!.FindNearest(testPoint).Item1;
@@ -64,23 +66,29 @@ public class FindNearestBenchmark
   [Benchmark()]
   public int FindRangeQuadTree()
   {
-    return QuadTreeRoot!.FindRange(testPoint, Range).Count();
+    return QuadTreeRoot!.FindInRadius(testPoint, Range).Count();
   }
 
   [Benchmark()]
   public int FindRangeKDTree()
   {
-    return KDTreeRoot!.FindRange(testPoint, Range).Count();
+    return KDTreeRoot!.FindInRadius(testPoint, Range).Count();
   }
 
   [Benchmark()]
+  public int FindRangeKDTreeOptimized()
+  {
+    return KDTreeRootOptimized!.FindInRadius(testPoint, Range).Count();
+  }
+
+  //[Benchmark()]
   public Vector128<double> BuildQuadTree()
   {
     var treeRoot = QuadTree.Build(Points!);
     return treeRoot.FindNearest(testPoint).Item1;
   }
 
-  [Benchmark()]
+  //[Benchmark()]
   public Vector128<double> BuildKDTree()
   {
     var treeRoot = KDTree.Build(Points!);
