@@ -1,7 +1,6 @@
 ﻿using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Running;
 using SpatialSearch;
-using SpatialSearch.Abstractions;
 using SpatialSearch.Extensions;
 using SpatialSearch.Tests;
 using System.Runtime.Intrinsics;
@@ -15,6 +14,7 @@ public class FindNearestBenchmark
   Random Random = new Random(42);
   [Params(1_000, 10_000, 100_000)]
   public int N;
+  double Range = 0.01;
 
   private SimplePoint[]? Points;
   private SimplePoint testPoint;
@@ -34,10 +34,43 @@ public class FindNearestBenchmark
     KDTreeRoot = KDTree.Build(Points);
   }
 
-  [Benchmark(Baseline = true)]
+  [Benchmark()]
   public Vector128<double> FindNearestLinear()
   {
     return Points!.OrderBy(p => VectorExtensions.DistanceSquared(p, testPoint)).First();
+  }
+
+  [Benchmark()]
+  public Vector128<double> FindNearestQuadTree()
+  {
+    return QuadTreeRoot!.FindNearest(testPoint).Item1;
+  }
+
+  [Benchmark()]
+  public Vector128<double> FindNearestKDTree()
+  {
+    return KDTreeRoot!.FindNearest(testPoint).Item1;
+  }
+
+  [Benchmark()]
+  public int FindRangeLinear()
+  {
+    return Points!
+      .Select(p => (p, VectorExtensions.Distance(p, testPoint)))
+      .Where(p => p.Item2 <= Range)
+      .Count();
+  }
+
+  [Benchmark()]
+  public int FindRangeQuadTree()
+  {
+    return QuadTreeRoot!.FindRange(testPoint, Range).Count();
+  }
+
+  [Benchmark()]
+  public int FindRangeKDTree()
+  {
+    return KDTreeRoot!.FindRange(testPoint, Range).Count();
   }
 
   [Benchmark()]
@@ -48,21 +81,10 @@ public class FindNearestBenchmark
   }
 
   [Benchmark()]
-  public Vector128<double> FindNearestQuadTree()
-  {
-    return QuadTreeRoot!.FindNearest(testPoint).Item1;
-  }
-
-  [Benchmark()]
   public Vector128<double> BuildKDTree()
   {
     var treeRoot = KDTree.Build(Points!);
     return treeRoot.FindNearest(testPoint).Item1;
   }
 
-  [Benchmark()]
-  public Vector128<double> FindNearestKDTree()
-  {
-    return KDTreeRoot!.FindNearest(testPoint).Item1;
-  }
 }
