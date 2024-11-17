@@ -1,15 +1,15 @@
 ﻿namespace SpatialSearch.Abstractions;
 
-public interface INearestPointFinder
+public interface ISpatialSearch
 {
-  abstract static INearestPointFinder<T> Build<T>(IEnumerable<T> points) where T : IPoint;
+  abstract static ISpatialSearch<T> Build<T>(IEnumerable<T> points) where T : IPoint;
 }
 
 /// <summary>
 /// Interface for finding the nearest point to a given point in a set of points in two dimensions.
 /// </summary>
 /// <typeparam name="T">The type of the points in the set.</typeparam>
-public interface INearestPointFinder<T>
+public interface ISpatialSearch<T>
 {
 
   /// <summary>
@@ -27,4 +27,6 @@ public interface INearestPointFinder<T>
   /// <param name="nearest">A tuple containing the nearest point and the distance to it if found; otherwise, the point is null and the distance is double.MaxValue.</param>
   /// <returns>True if a point is found within the minimum distance; otherwise, false.</returns>
   bool TryFindNearest(IPoint point, double minDistance, out (T? Point, double Distance) nearest);
+
+  IEnumerable<(T Point, double Distance)> FindRange(IPoint point, double radious);
 }

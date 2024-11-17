@@ -5,13 +5,13 @@ using System.Runtime.Intrinsics;
 
 namespace SpatialSearch;
 
-public class KDTree : INearestPointFinder
+public class KDTree : ISpatialSearch
 {
-  public static INearestPointFinder<T> Build<T>(IEnumerable<T> points) where T : IPoint
+  public static ISpatialSearch<T> Build<T>(IEnumerable<T> points) where T : IPoint
     => new KDTree<T>(points.ToArray(), 0);
 }
 
-internal class KDTree<T> : INearestPointFinder<T> where T : IPoint
+internal class KDTree<T> : ISpatialSearch<T> where T : IPoint
 {
   private readonly KDTree<T>[] Children = new KDTree<T>[2];
   private readonly T[] Points;
@@ -69,6 +69,32 @@ internal class KDTree<T> : INearestPointFinder<T> where T : IPoint
     return false;
   }
 
+  public IEnumerable<(T Point, double Distance)> FindRange(IPoint point, double radious)
+  {
+    var stack = new Stack<KDTree<T>>();
+    stack.Push(this);
+    var vector = point.ToVector128();
+    while (stack.Count > 0)
+    {
+      var node = stack.Pop();
+      if (node.Count == 1)
+      {
+        var distance = vector.Distance(node.Points[0].ToVector128());
+        if (distance < radious)
+          yield return (node.Points[0]!, distance);
+      }
+      else
+      {
+        var pointCoordinate = CoordinateSelector(point);
+        if (pointCoordinate + radious > MinAxixValue ||
+            pointCoordinate - radious < MaxAxisValue)
+          foreach (var child in node.Children)
+            if (null != child)
+              stack.Push(child);
+      }
+    }
+  }
+
   private (T? Point, double Distance) FindNearest(IPoint point, double minDistance)
   {
     var pointCoordinate = CoordinateSelector(point);
@@ -101,4 +127,5 @@ internal class KDTree<T> : INearestPointFinder<T> where T : IPoint
   }
 
   public override string ToString() => Count.ToString();
+
 }

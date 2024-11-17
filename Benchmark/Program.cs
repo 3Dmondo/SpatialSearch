@@ -18,8 +18,8 @@ public class FindNearestBenchmark
 
   private SimplePoint[]? Points;
   private SimplePoint testPoint;
-  private INearestPointFinder<SimplePoint>? QuadTreeRoot;
-  private INearestPointFinder<SimplePoint>? KDTreeRoot;
+  private SpatialSearch.Abstractions.ISpatialSearch<SimplePoint>? QuadTreeRoot;
+  private SpatialSearch.Abstractions.ISpatialSearch<SimplePoint>? KDTreeRoot;
 
   [GlobalSetup]
   public void GlobalSetup()
@@ -40,7 +40,7 @@ public class FindNearestBenchmark
     return Points!.OrderBy(p => VectorExtensions.DistanceSquared(p, testPoint)).First();
   }
 
-  //[Benchmark()]
+  [Benchmark()]
   public Vector128<double> BuildQuadTree()
   {
     var treeRoot = QuadTree.Build(Points!);
@@ -53,7 +53,7 @@ public class FindNearestBenchmark
     return QuadTreeRoot!.FindNearest(testPoint).Item1;
   }
 
-  //[Benchmark()]
+  [Benchmark()]
   public Vector128<double> BuildKDTree()
   {
     var treeRoot = KDTree.Build(Points!);
