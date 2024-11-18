@@ -129,23 +129,13 @@ internal class QuadTree<T> : ISpatialSearch<T> where T : IPoint
 
     var gt = Vector128.GreaterThan(point, Center).AsInt64();
     var childIndex = Vector128.Sum(Base2Indices & gt);
-    var child = Children[childIndex];
-    if (null != child)
-      candidate = UpdateCandidateIfCloser(child, point, candidate);
 
-    long nextChildIndex;
-
-    nextChildIndex = childIndex ^ 1L;
-    if (null != Children[nextChildIndex])
-      candidate = UpdateCandidateIfCloser(Children[nextChildIndex], point, candidate);
-
-    nextChildIndex = childIndex ^ 2L;
-    if (null != Children[nextChildIndex])
-      candidate = UpdateCandidateIfCloser(Children[nextChildIndex], point, candidate);
-
-    nextChildIndex = childIndex ^ 3L;
-    if (null != Children[nextChildIndex])
-      candidate = UpdateCandidateIfCloser(Children[nextChildIndex], point, candidate);
+    for (long i = 0; i < 4; i++)
+    {
+      var child = Children[i ^ childIndex];
+      if (child != null)
+        candidate = UpdateCandidateIfCloser(child, point, candidate);
+    }
 
     return candidate;
   }
