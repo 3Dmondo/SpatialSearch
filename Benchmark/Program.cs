@@ -53,7 +53,7 @@ public class FindNearestBenchmark
   }
 
   [Benchmark()]
-  public int FindRangeLinear()
+  public int FindInRadiusLinear()
   {
     return Points!
       .Select(p => (p, VectorExtensions.Distance(p, testPoint)))
