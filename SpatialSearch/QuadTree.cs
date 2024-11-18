@@ -5,9 +5,9 @@ using SpatialSearch.Extensions;
 
 namespace SpatialSearch;
 
-public class QuadTree : INearestPointFinder
+public class QuadTree : ISpatialSearch
 {
-  public static INearestPointFinder<T> Build<T>(IEnumerable<T> points)
+  public static ISpatialSearch<T> Build<T>(IEnumerable<T> points)
   where T : IPoint
   {
     var max = points.MaxCoordinates();
@@ -22,7 +22,7 @@ public class QuadTree : INearestPointFinder
   }
 }
 
-internal class QuadTree<T> : INearestPointFinder<T> where T : IPoint
+internal class QuadTree<T> : ISpatialSearch<T> where T : IPoint
 {
   private static readonly Vector128<long> Base2Indices = Vector128.Create(1L, 2L);
   private static readonly Vector128<long> One = Vector128.Create(1.0, 1.0).AsInt64();
@@ -88,11 +88,37 @@ internal class QuadTree<T> : INearestPointFinder<T> where T : IPoint
     return (result.Point!, result.Distance);
   }
 
+  public IEnumerable<(T Point, double Distance)> FindInRadius(IPoint point, double radius)
+  {
+    var stack = new Stack<QuadTree<T>>();
+    stack.Push(this);
+    var vector = point.ToVector128();
+    while (stack.Count > 0)
+    {
+      var node = stack.Pop();
+      if (node.NumberOfPoints == 1)
+      {
+        var distance = vector.Distance(node.InnerPointVector);
+        if (distance < radius)
+          yield return (node.InnerPoint!, distance);
+      }
+      else
+      {
+        var distance = vector.Distance(node.Center);
+        if (distance < radius + node.Radius)
+          foreach (var child in node.Children)
+            if (null != child)
+              stack.Push(child);
+      }
+    }
+  }
+
   private (T? Point, double Distance) FindNearest(Vector128<double> point, double minDistance)
   {
     var distanceFromCenter = point.DistanceSquared(Center);
     var maxDistanceSquared = minDistance + Radius;
     maxDistanceSquared *= maxDistanceSquared;
+
     if (distanceFromCenter > maxDistanceSquared)
       return (default, double.MaxValue);
 
@@ -103,23 +129,13 @@ internal class QuadTree<T> : INearestPointFinder<T> where T : IPoint
 
     var gt = Vector128.GreaterThan(point, Center).AsInt64();
     var childIndex = Vector128.Sum(Base2Indices & gt);
-    var child = Children[childIndex];
-    if (null != child)
-      candidate = UpdateCandidateIfCloser(child, point, candidate);
 
-    long nextChildIndex;
-
-    nextChildIndex = childIndex ^ 1L;
-    if (null != Children[nextChildIndex])
-      candidate = UpdateCandidateIfCloser(Children[nextChildIndex], point, candidate);
-
-    nextChildIndex = childIndex ^ 2L;
-    if (null != Children[nextChildIndex])
-      candidate = UpdateCandidateIfCloser(Children[nextChildIndex], point, candidate);
-
-    nextChildIndex = childIndex ^ 3L;
-    if (null != Children[nextChildIndex])
-      candidate = UpdateCandidateIfCloser(Children[nextChildIndex], point, candidate);
+    for (long i = 0; i < 4; i++)
+    {
+      var child = Children[i ^ childIndex];
+      if (child != null)
+        candidate = UpdateCandidateIfCloser(child, point, candidate);
+    }
 
     return candidate;
   }
