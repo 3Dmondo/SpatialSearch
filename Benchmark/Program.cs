@@ -20,6 +20,7 @@ public class FindNearestBenchmark
   private SimplePoint testPoint;
   private SpatialSearch.Abstractions.ISpatialSearch<SimplePoint>? QuadTreeRoot;
   private SpatialSearch.Abstractions.ISpatialSearch<SimplePoint>? KDTreeRoot;
+  private SpatialSearch.Abstractions.ISpatialSearch<SimplePoint>? KDTreeQuickSelectRoot;
 
   [GlobalSetup]
   public void GlobalSetup()
@@ -32,15 +33,16 @@ public class FindNearestBenchmark
     testPoint = Vector128.Create(Random.NextDouble(), Random.NextDouble());
     QuadTreeRoot = QuadTree.Build(Points);
     KDTreeRoot = KDTree.Build(Points);
+    KDTreeQuickSelectRoot = KDTreeQuickSelect.Build(Points);
   }
 
-  [Benchmark()]
+  //[Benchmark()]
   public Vector128<double> FindNearestLinear()
   {
     return Points!.OrderBy(p => VectorExtensions.DistanceSquared(p, testPoint)).First();
   }
 
-  [Benchmark()]
+  //[Benchmark()]
   public Vector128<double> FindNearestQuadTree()
   {
     return QuadTreeRoot!.FindNearest(testPoint).Item1;
@@ -53,6 +55,12 @@ public class FindNearestBenchmark
   }
 
   [Benchmark()]
+  public Vector128<double> FindNearestKDTreeQuickSelect()
+  {
+    return KDTreeQuickSelectRoot!.FindNearest(testPoint).Item1;
+  }
+
+  //[Benchmark()]
   public int FindInRadiusLinear()
   {
     return Points!
@@ -74,17 +82,27 @@ public class FindNearestBenchmark
   }
 
   [Benchmark()]
-  public Vector128<double> BuildQuadTree()
+  public int FindInRadiusKDTreeQuickSelect()
   {
-    var treeRoot = QuadTree.Build(Points!);
-    return treeRoot.FindNearest(testPoint).Item1;
+    return KDTreeQuickSelectRoot!.FindInRadius(testPoint, Range).Count();
   }
 
   [Benchmark()]
-  public Vector128<double> BuildKDTree()
+  public SpatialSearch.Abstractions.ISpatialSearch<SimplePoint> BuildQuadTree()
   {
-    var treeRoot = KDTree.Build(Points!);
-    return treeRoot.FindNearest(testPoint).Item1;
+    return QuadTree.Build(Points!);
+  }
+
+  [Benchmark()]
+  public SpatialSearch.Abstractions.ISpatialSearch<SimplePoint> BuildKDTree()
+  {
+    return KDTree.Build(Points!);
+  }
+
+  [Benchmark()]
+  public SpatialSearch.Abstractions.ISpatialSearch<SimplePoint> BuildKDTreeQuickSelect()
+  {
+    return KDTreeQuickSelect.Build(Points!);
   }
 
 }

@@ -6,19 +6,19 @@ using System.Runtime.Intrinsics;
 
 namespace SpatialSearch;
 
-public class KDTree : ISpatialSearch
+public class KDTreeQuickSelect : ISpatialSearch
 {
   public static ISpatialSearch<T> Build<T>(IEnumerable<T> points) where T : IPoint
   {
     var boundingBox = points.GetBoundingBox();
-    return new KDTree<T>(points.ToArray(), boundingBox, 0);
+    return new KDTreeQuickSelect<T>(points.ToArray(), boundingBox, 0);
   }
 }
 
-internal class KDTree<T> : ISpatialSearch<T> where T : IPoint
+internal class KDTreeQuickSelect<T> : ISpatialSearch<T> where T : IPoint
 {
-  private readonly KDTree<T>[] Children = new KDTree<T>[2];
-  private readonly T[] Points;
+  private readonly KDTreeQuickSelect<T>[] Children = new KDTreeQuickSelect<T>[2];
+  private readonly Memory<T> Points;
   private readonly int Depth;
   private readonly int Count;
   private Func<IPoint, double> CoordinateSelector;
@@ -26,8 +26,8 @@ internal class KDTree<T> : ISpatialSearch<T> where T : IPoint
   private double MaxAxisValue;
   private double Pivot;
   private BoundingBox BoundingBox;
-  public KDTree(
-    T[] points,
+  public KDTreeQuickSelect(
+    Memory<T> points,
     BoundingBox boundingBox,
     int depth)
   {
@@ -37,7 +37,7 @@ internal class KDTree<T> : ISpatialSearch<T> where T : IPoint
     CoordinateSelector = (Depth & 1) == 0 ? p => p.X : p => p.Y;
     BoundingBox = boundingBox;
 
-    (MinAxixValue, MaxAxisValue) = points
+    (MinAxixValue, MaxAxisValue) = points.ToArray()
       .Select(p => CoordinateSelector(p))
       .Aggregate(
         (Min: double.MaxValue, Max: double.MinValue),
@@ -45,20 +45,17 @@ internal class KDTree<T> : ISpatialSearch<T> where T : IPoint
 
     if (Count > 1)
     {
-      Points = Points
-        .OrderBy(p => CoordinateSelector(p))
-        .ToArray();
 
-      var pivotIndex = Points.Length / 2;
+      var pivotIndex = Points..Median(Depth & 1);
       Pivot = CoordinateSelector(Points[pivotIndex]);
 
       var subBoundingBoxes = boundingBox.Split(Depth & 1, Pivot);
 
-      Children[0] = new KDTree<T>(
+      Children[0] = new KDTreeQuickSelect<T>(
         Points[..pivotIndex],
         subBoundingBoxes[0],
         depth + 1);
-      Children[1] = new KDTree<T>(
+      Children[1] = new KDTreeQuickSelect<T>(
         Points[pivotIndex..],
         subBoundingBoxes[1],
         depth + 1);
@@ -82,7 +79,7 @@ internal class KDTree<T> : ISpatialSearch<T> where T : IPoint
 
   public IEnumerable<(T Point, double Distance)> FindInRadius(IPoint point, double radius)
   {
-    var stack = new Stack<KDTree<T>>();
+    var stack = new Stack<KDTreeQuickSelect<T>>();
     stack.Push(this);
     var vector = point.ToVector128();
     var circle = new Circle(vector, radius);
@@ -134,7 +131,7 @@ internal class KDTree<T> : ISpatialSearch<T> where T : IPoint
 
   [MethodImpl(MethodImplOptions.AggressiveInlining)]
   private static (T? candidate, double mindistance) UpdateCandidateIfCloser(
-    KDTree<T> child,
+    KDTreeQuickSelect<T> child,
     IPoint point,
     (T?, double Distance) candidate)
   {

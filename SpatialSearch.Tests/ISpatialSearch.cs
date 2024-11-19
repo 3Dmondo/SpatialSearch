@@ -7,6 +7,7 @@ namespace SpatialSearch.Tests;
 
 [TestFixture(typeof(QuadTree))]
 [TestFixture(typeof(KDTree))]
+[TestFixture(typeof(KDTreeQuickSelect))]
 public class ISpatialSearch<TSpatialSearch>
   where TSpatialSearch : ISpatialSearch
 {
