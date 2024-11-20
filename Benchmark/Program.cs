@@ -1,14 +1,17 @@
 ﻿using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Running;
-using SpatialSearch.Extensions;
+using SpatialSearch;
+using SpatialSearch.Abstractions;
 using SpatialSearch.Tests;
 using System.Runtime.Intrinsics;
 
-BenchmarkRunner.Run<FindNearestBenchmark>();
-
+BenchmarkSwitcher.FromTypes([typeof(FindNearestBenchmark<>)]).RunAllJoined();
 
 [MemoryDiagnoser]
-public class FindNearestBenchmark
+[GenericTypeArguments(typeof(LinearSearch))]
+[GenericTypeArguments(typeof(QuadTree))]
+[GenericTypeArguments(typeof(KDTree))]
+public class FindNearestBenchmark<T> where T : ISpatialSearch
 {
   Random Random = new Random(42);
   [Params(1_000, 10_000, 100_000)]
@@ -18,8 +21,7 @@ public class FindNearestBenchmark
 
   private SimplePoint[]? Points;
   private SimplePoint testPoint;
-  private SpatialSearch.Abstractions.ISpatialSearch<SimplePoint>? QuadTree;
-  private SpatialSearch.Abstractions.ISpatialSearch<SimplePoint>? KDTree;
+  private ISpatialSearch<SimplePoint>? SpatialSearch;
 
   [GlobalSetup]
   public void GlobalSetup()
@@ -31,61 +33,26 @@ public class FindNearestBenchmark
         .Create(Random.NextDouble(), Random.NextDouble()))
       .ToArray();
     testPoint = Vector128.Create(Random.NextDouble(), Random.NextDouble());
-    QuadTree = SpatialSearch.QuadTree.Build(Points);
-    KDTree = SpatialSearch.KDTree.Build(Points);
+    SpatialSearch = T.Build(Points);
   }
 
   [Benchmark()]
-  public Vector128<double> FindNearestLinear()
+  public Vector128<double> FindNearest()
   {
-    return Points!
-      .Select(p => (p, VectorExtensions.Distance(p, testPoint)))
-      .MinBy(p => p.Item2).p;
+    return SpatialSearch!.FindNearest(testPoint).Item1;
   }
+
 
   [Benchmark()]
-  public Vector128<double> FindNearestQuadTree()
+  public int FindInRadius()
   {
-    return QuadTree!.FindNearest(testPoint).Item1;
+    return SpatialSearch!.FindInRadius(testPoint, Radius).Count();
   }
+
 
   [Benchmark()]
-  public Vector128<double> FindNearestKDTree()
+  public ISpatialSearch<SimplePoint> Build()
   {
-    return KDTree!.FindNearest(testPoint).Item1;
+    return T.Build(Points!);
   }
-
-  [Benchmark()]
-  public int FindInRadiusLinear()
-  {
-    return Points!
-      .Select(p => (p, VectorExtensions.Distance(p, testPoint)))
-      .Where(p => p.Item2 <= Radius)
-      .Count();
-  }
-
-  [Benchmark()]
-  public int FindInRadiusQuadTree()
-  {
-    return QuadTree!.FindInRadius(testPoint, Radius).Count();
-  }
-
-  [Benchmark()]
-  public int FindInRadiusKDTree()
-  {
-    return KDTree!.FindInRadius(testPoint, Radius).Count();
-  }
-
-  [Benchmark()]
-  public SpatialSearch.Abstractions.ISpatialSearch<SimplePoint> BuildQuadTree()
-  {
-    return SpatialSearch.QuadTree.Build(Points!);
-  }
-
-  [Benchmark()]
-  public SpatialSearch.Abstractions.ISpatialSearch<SimplePoint> BuildKDTree()
-  {
-    return SpatialSearch.KDTree.Build(Points!);
-  }
-
 }
