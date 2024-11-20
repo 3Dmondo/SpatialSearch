@@ -27,7 +27,7 @@ public class ISpatialSearch<TSpatialSearch>
       SimplePoint testPoint = Vector128.Create(
         random.NextDouble() * size,
         random.NextDouble() * size);
-      var expected = FindNearest(points, testPoint);
+      var expected = FindNearestreference(points, testPoint);
       var nearest = treeRoot.FindNearest(testPoint);
       Assert.That(nearest, Is.EqualTo(expected), $"Failed at iteration {iteration}");
     }
@@ -51,14 +51,14 @@ public class ISpatialSearch<TSpatialSearch>
     var random = new Random(42);
     var points = GeneratePoints(100, 1.0, random);
     var testPoint = (SimplePoint)Vector128.Create(20.0, 0.0);
-    var expected = FindNearest(points, testPoint);
+    var expected = FindNearestreference(points, testPoint);
     var treeRoot = TSpatialSearch.Build(points);
     var nearest = treeRoot.FindNearest(testPoint);
     Assert.That(nearest, Is.EqualTo(expected));
   }
 
   [Test, Combinatorial]
-  public void FindRange(
+  public void FindInRadius(
     [Values(1_000, 10_000, 100_000)] int numberOfPoints,
     [Values(0.1, 1.0, 10.0, 100.0)] double size,
     [Values(0, 1, 42)] int randomSeed)
@@ -73,13 +73,13 @@ public class ISpatialSearch<TSpatialSearch>
       SimplePoint testPoint = Vector128.Create(
         random.NextDouble() * size,
         random.NextDouble() * size);
-      var expectedValues = FindRange(points, testPoint, range);
+      var expectedValues = FindInRadiusreference(points, testPoint, range);
       var values = treeRoot.FindInRadius(testPoint, range);
       Assert.That(values, Is.EquivalentTo(expectedValues), $"Failed at iteration {iteration}");
     }
   }
 
-  private IEnumerable<(SimplePoint Point, double Distance)> FindRange(
+  private IEnumerable<(SimplePoint Point, double Distance)> FindInRadiusreference(
     IEnumerable<SimplePoint> points, 
     SimplePoint testPoint,
     double range)
@@ -102,12 +102,12 @@ public class ISpatialSearch<TSpatialSearch>
       .ToList();
   }
 
-  private static (SimplePoint p, double) FindNearest(
+  private static (SimplePoint p, double) FindNearestreference(
     IEnumerable<SimplePoint> points, 
     SimplePoint testPoint)
   {
     return points
       .Select(p => (p, VectorExtensions.Distance(p, testPoint)))
-      .OrderBy(p => p.Item2).First();
+      .MinBy(p => p.Item2);
   }
 }
