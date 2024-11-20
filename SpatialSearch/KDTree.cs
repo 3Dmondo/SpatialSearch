@@ -1,6 +1,5 @@
 ﻿using SpatialSearch.Abstractions;
 using SpatialSearch.Extensions;
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.Intrinsics;
 
@@ -11,14 +10,14 @@ public class KDTree : ISpatialSearch
   public static ISpatialSearch<T> Build<T>(IEnumerable<T> points) where T : IPoint
   {
     var boundingBox = points.GetBoundingBox();
-    return new KDTree<T>(points.ToArray(), boundingBox, 0);
+    return new KDTree<T>(points.ToArray().AsMemory(), boundingBox, 0);
   }
 }
 
 internal class KDTree<T> : ISpatialSearch<T> where T : IPoint
 {
   private readonly KDTree<T>[] Children = new KDTree<T>[2];
-  private readonly T[] Points;
+  private readonly Memory<T> Points;
   private readonly int Depth;
   private readonly int Count;
   private Func<IPoint, double> CoordinateSelector;
@@ -27,7 +26,7 @@ internal class KDTree<T> : ISpatialSearch<T> where T : IPoint
   private double Pivot;
   private BoundingBox BoundingBox;
   public KDTree(
-    T[] points,
+    Memory<T> points,
     BoundingBox boundingBox,
     int depth)
   {
@@ -37,20 +36,22 @@ internal class KDTree<T> : ISpatialSearch<T> where T : IPoint
     CoordinateSelector = (Depth & 1) == 0 ? p => p.X : p => p.Y;
     BoundingBox = boundingBox;
 
-    (MinAxixValue, MaxAxisValue) = points
-      .Select(p => CoordinateSelector(p))
-      .Aggregate(
-        (Min: double.MaxValue, Max: double.MinValue),
-        (acc, v) => (Math.Min(acc.Min, v), Math.Max(acc.Max, v)));
+    var span = points.Span;
+    MinAxixValue = double.MaxValue;
+    MaxAxisValue = double.MinValue;
+    for (int i = 0;i<span.Length; i++)
+    {
+      var value = span[i];
+      var coordinate = CoordinateSelector(value);
+      MinAxixValue = Math.Min(MinAxixValue, coordinate);
+      MaxAxisValue = Math.Max(MaxAxisValue, coordinate);
+    }
+
 
     if (Count > 1)
     {
-      Points = Points
-        .OrderBy(p => CoordinateSelector(p))
-        .ToArray();
-
-      var pivotIndex = Points.Length / 2;
-      Pivot = CoordinateSelector(Points[pivotIndex]);
+      var pivotIndex = span.Median(Depth & 1);
+      Pivot = CoordinateSelector(span[pivotIndex]);
 
       var subBoundingBoxes = boundingBox.Split(Depth & 1, Pivot);
 
@@ -93,18 +94,23 @@ internal class KDTree<T> : ISpatialSearch<T> where T : IPoint
         continue;
       if (node.Count == 1)
       {
-        var distance = vector.Distance(node.Points[0].ToVector128());
+        var value = node.Points.Span[0];
+        var distance = vector.Distance(value.ToVector128());
         if (distance < radius)
-          yield return (node.Points[0]!, distance);
+          yield return (value, distance);
       }
       else
       {
         if (circle.Contains(node.BoundingBox))
-          foreach (var p in node.Points)
+        {
+          for (int i = 0; i < node.Points.Span.Length; i++)
           {
-            var distance = vector.Distance(p.ToVector128());
-            yield return (p, distance);
+            var value = node.Points.Span[i];
+            var distance = vector.Distance(value.ToVector128());
+            if (distance < radius)
+              yield return (value, distance);
           }
+        }
         else
           foreach (var child in node.Children)
             if (null != child)
@@ -112,7 +118,6 @@ internal class KDTree<T> : ISpatialSearch<T> where T : IPoint
       }
     }
   }
-
 
   private (T? Point, double Distance) FindNearest(IPoint point, double minDistance)
   {
@@ -123,7 +128,10 @@ internal class KDTree<T> : ISpatialSearch<T> where T : IPoint
       return (default, double.MaxValue);
 
     if (Count == 1)
-      return (Points[0], Points[0].ToVector128().Distance(point.ToVector128()));
+    {
+      var value = Points.Span[0];
+      return (value, value.ToVector128().Distance(point.ToVector128()));
+    }
 
     (T?, double) candidate = (default, minDistance);
     var childIndex = pointCoordinate < Pivot ? 0 : 1;
