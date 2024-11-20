@@ -1,13 +1,12 @@
 ﻿using NUnit.Framework;
 using SpatialSearch.Abstractions;
-using SpatialSearch.Extensions;
 using System.Runtime.Intrinsics;
 
 namespace SpatialSearch.Tests;
 
 [TestFixture(typeof(QuadTree))]
 [TestFixture(typeof(KDTree))]
-public class ISpatialSearch<TSpatialSearch>
+public class ISpatialSearchTests<TSpatialSearch>
   where TSpatialSearch : ISpatialSearch
 {
   private const int Iterations = 10;
@@ -27,7 +26,7 @@ public class ISpatialSearch<TSpatialSearch>
       SimplePoint testPoint = Vector128.Create(
         random.NextDouble() * size,
         random.NextDouble() * size);
-      var expected = FindNearestreference(points, testPoint);
+      var expected = LinearSearch.Build(points).FindNearest(testPoint);
       var nearest = treeRoot.FindNearest(testPoint);
       Assert.That(nearest, Is.EqualTo(expected), $"Failed at iteration {iteration}");
     }
@@ -51,7 +50,7 @@ public class ISpatialSearch<TSpatialSearch>
     var random = new Random(42);
     var points = GeneratePoints(100, 1.0, random);
     var testPoint = (SimplePoint)Vector128.Create(20.0, 0.0);
-    var expected = FindNearestreference(points, testPoint);
+    var expected = LinearSearch.Build(points).FindNearest(testPoint);
     var treeRoot = TSpatialSearch.Build(points);
     var nearest = treeRoot.FindNearest(testPoint);
     Assert.That(nearest, Is.EqualTo(expected));
@@ -73,20 +72,10 @@ public class ISpatialSearch<TSpatialSearch>
       SimplePoint testPoint = Vector128.Create(
         random.NextDouble() * size,
         random.NextDouble() * size);
-      var expectedValues = FindInRadiusreference(points, testPoint, range);
+      var expectedValues = LinearSearch.Build(points).FindInRadius(testPoint, range);
       var values = treeRoot.FindInRadius(testPoint, range);
       Assert.That(values, Is.EquivalentTo(expectedValues), $"Failed at iteration {iteration}");
     }
-  }
-
-  private IEnumerable<(SimplePoint Point, double Distance)> FindInRadiusreference(
-    IEnumerable<SimplePoint> points, 
-    SimplePoint testPoint,
-    double range)
-  {
-    return points
-      .Select(p => (p, VectorExtensions.Distance(p, testPoint)))
-      .Where(p => p.Item2 <= range);
   }
 
   private static IEnumerable<SimplePoint> GeneratePoints(
@@ -100,14 +89,5 @@ public class ISpatialSearch<TSpatialSearch>
         random.NextDouble() * size,
         random.NextDouble() * size))
       .ToList();
-  }
-
-  private static (SimplePoint p, double) FindNearestreference(
-    IEnumerable<SimplePoint> points, 
-    SimplePoint testPoint)
-  {
-    return points
-      .Select(p => (p, VectorExtensions.Distance(p, testPoint)))
-      .MinBy(p => p.Item2);
   }
 }
