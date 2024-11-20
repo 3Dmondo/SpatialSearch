@@ -5,13 +5,13 @@ using SpatialSearch.Abstractions;
 using SpatialSearch.Tests;
 using System.Runtime.Intrinsics;
 
-BenchmarkSwitcher.FromTypes([typeof(FindNearestBenchmark<>)]).RunAllJoined();
+BenchmarkSwitcher.FromTypes([typeof(Benchmark<>)]).RunAllJoined();
 
 [MemoryDiagnoser]
 [GenericTypeArguments(typeof(LinearSearch))]
 [GenericTypeArguments(typeof(QuadTree))]
 [GenericTypeArguments(typeof(KDTree))]
-public class FindNearestBenchmark<T> where T : ISpatialSearch
+public class Benchmark<T> where T : ISpatialSearch
 {
   Random Random = new Random(42);
   [Params(1_000, 10_000, 100_000)]
@@ -42,13 +42,11 @@ public class FindNearestBenchmark<T> where T : ISpatialSearch
     return SpatialSearch!.FindNearest(testPoint).Item1;
   }
 
-
   [Benchmark()]
   public int FindInRadius()
   {
     return SpatialSearch!.FindInRadius(testPoint, Radius).Count();
   }
-
 
   [Benchmark()]
   public ISpatialSearch<SimplePoint> Build()
