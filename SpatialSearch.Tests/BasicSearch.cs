@@ -5,13 +5,13 @@ namespace SpatialSearch.Tests;
 public class BasicSearch : ISpatialSearch
 {
   public static ISpatialSearch<T> Build<T>(IEnumerable<T> points) where T : IPoint
-    => new LinearSearch<T>(points);
+    => new BasicSearch<T>(points);
 }
 
-public class LinearSearch<T> : ISpatialSearch<T> where T : IPoint
+public class BasicSearch<T> : ISpatialSearch<T> where T : IPoint
 {
   private IEnumerable<T> Points;
-  public LinearSearch(IEnumerable<T> points)
+  public BasicSearch(IEnumerable<T> points)
   {
     Points = points;
   }

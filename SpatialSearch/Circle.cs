@@ -21,9 +21,10 @@ public struct Circle
     Radius = radius;
   }
 
-  public bool Contains(IPoint point)
+  public bool Contains(IPoint point, out double distance)
   {
-    return Center.Distance(point.ToVector128()) <= Radius;
+    distance = Center.Distance(point.ToVector128());
+    return distance <= Radius;
   }
 
   public bool Contains(BoundingBox boundingBox)

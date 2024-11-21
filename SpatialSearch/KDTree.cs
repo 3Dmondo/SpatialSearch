@@ -95,8 +95,7 @@ internal class KDTree<T> : ISpatialSearch<T> where T : IPoint
       if (node.Count == 1)
       {
         var value = node.Points.Span[0];
-        var distance = vector.Distance(value.ToVector128());
-        if (distance < radius)
+        if (circle.Contains(value, out var distance))
           yield return (value, distance);
       }
       else
@@ -106,8 +105,7 @@ internal class KDTree<T> : ISpatialSearch<T> where T : IPoint
           for (int i = 0; i < node.Points.Span.Length; i++)
           {
             var value = node.Points.Span[i];
-            var distance = vector.Distance(value.ToVector128());
-            if (distance < radius)
+            if (circle.Contains(value, out var distance))
               yield return (value, distance);
           }
         }

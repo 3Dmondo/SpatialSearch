@@ -1,6 +1,4 @@
 ﻿using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Order;
-
 #if !DEBUG
 using BenchmarkDotNet.Running;
 #endif
@@ -10,7 +8,7 @@ using SpatialSearch.Tests;
 using System.Runtime.Intrinsics;
 
 #if DEBUG
-Type[] types = [typeof(LinearSearch), typeof(QuadTree), typeof(KDTree)];
+Type[] types = [typeof(BasicSearch), typeof(QuadTree), typeof(KDTree)];
 foreach (Type type in types)
 {
   var benchmarkType = typeof(Benchmark<>).MakeGenericType(type);
