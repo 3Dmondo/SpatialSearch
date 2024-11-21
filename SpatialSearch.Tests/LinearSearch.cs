@@ -39,4 +39,7 @@ public class LinearSearch<T> : ISpatialSearch<T> where T : IPoint
       return false;
     }
   }
+
+  public override string ToString() => $"{nameof(LinearSearch)}<{typeof(T).Name}> N: {Points.Count()}";
+
 }

@@ -17,29 +17,28 @@ public class ISpatialSearchTests<TSpatialSearch>
     [Values(0.1, 1.0, 10.0, 100.0)] double size,
     [Values(0, 1, 42)] int randomSeed)
   {
-    var random = new Random(randomSeed);
-    var points = GeneratePoints(numberOfPoints, size, random);
-    var treeRoot = TSpatialSearch.Build(points);
-    int iteration = 0;
-    while (iteration++ < Iterations)
+    var pointsGEnerator = new PointsGenerator(size, randomSeed);
+    var points = pointsGEnerator.GeneratePoints(numberOfPoints);
+    var linearSearch = LinearSearch.Build(points);
+    var spatialSearch = TSpatialSearch.Build(points);
+    var iteration = 0;
+    foreach (var testPoint in pointsGEnerator.GeneratePoints(Iterations))
     {
-      SimplePoint testPoint = Vector128.Create(
-        random.NextDouble() * size,
-        random.NextDouble() * size);
-      var expected = LinearSearch.Build(points).FindNearest(testPoint);
-      var nearest = treeRoot.FindNearest(testPoint);
-      Assert.That(nearest, Is.EqualTo(expected), $"Failed at iteration {iteration}");
+      var expected = linearSearch.FindNearest(testPoint);
+      var nearest = spatialSearch.FindNearest(testPoint);
+      Assert.That(nearest, Is.EqualTo(expected), $"Failed at iteration {iteration++}");
     }
   }
 
   [Test]
   public void FindNearestMinDistance()
   {
-    var random = new Random(42);
-    var points = GeneratePoints(100, 1.0, random);
+    var pointsGenerator = new PointsGenerator(1.0, 42);
+    var points = pointsGenerator.GeneratePoints(100);
     var testPoint = (SimplePoint)Vector128.Create(2.0, 0.0);
-    var treeRoot = TSpatialSearch.Build(points);
-    var result = treeRoot.TryFindNearest(testPoint, 1.0, out var nearest);
+    var result = TSpatialSearch
+      .Build(points)
+      .TryFindNearest(testPoint, 1.0, out var nearest);
     Assert.That(result, Is.False);
     Assert.That(nearest, Is.EqualTo((default(SimplePoint), double.MaxValue)));
   }
@@ -47,12 +46,11 @@ public class ISpatialSearchTests<TSpatialSearch>
   [Test]
   public void FindNearestFar()
   {
-    var random = new Random(42);
-    var points = GeneratePoints(100, 1.0, random);
+    var pointsGenerator = new PointsGenerator(1.0, 42);
+    var points = pointsGenerator.GeneratePoints(100);
     var testPoint = (SimplePoint)Vector128.Create(20.0, 0.0);
     var expected = LinearSearch.Build(points).FindNearest(testPoint);
-    var treeRoot = TSpatialSearch.Build(points);
-    var nearest = treeRoot.FindNearest(testPoint);
+    var nearest = TSpatialSearch.Build(points).FindNearest(testPoint);
     Assert.That(nearest, Is.EqualTo(expected));
   }
 
@@ -62,32 +60,25 @@ public class ISpatialSearchTests<TSpatialSearch>
     [Values(0.1, 1.0, 10.0, 100.0)] double size,
     [Values(0, 1, 42)] int randomSeed)
   {
-    var range = size * 0.01;
-    var random = new Random(randomSeed);
-    var points = GeneratePoints(numberOfPoints, size, random);
-    var treeRoot = TSpatialSearch.Build(points);
+    var range = 2.5 * size / Math.Sqrt(numberOfPoints);
+    var pointsGenerator = new PointsGenerator(size, randomSeed);
+    var points = pointsGenerator.GeneratePoints(numberOfPoints);
+    var linearSearch = LinearSearch.Build(points);
+    var spatialSearch  = TSpatialSearch.Build(points);
     int iteration = 0;
-    while (iteration++ < Iterations)
+    foreach (var testPoint in pointsGenerator.GeneratePoints(Iterations))
     {
-      SimplePoint testPoint = Vector128.Create(
-        random.NextDouble() * size,
-        random.NextDouble() * size);
-      var expectedValues = LinearSearch.Build(points).FindInRadius(testPoint, range);
-      var values = treeRoot.FindInRadius(testPoint, range);
-      Assert.That(values, Is.EquivalentTo(expectedValues), $"Failed at iteration {iteration}");
+      var expectedValues = linearSearch.FindInRadius(testPoint, range);
+      var values = spatialSearch.FindInRadius(testPoint, range);
+      Assert.That(
+        values,
+        Is.EquivalentTo(expectedValues),
+        $"Failed at iteration {iteration}");
+      Assert.That(values.Count(), Is.AtLeast(5),
+        $"Failed at iteration {iteration}");
+      Assert.That(values.Count(), Is.AtMost(30),
+        $"Failed at iteration {iteration}");
+      iteration++;
     }
-  }
-
-  private static IEnumerable<SimplePoint> GeneratePoints(
-    int numberOfPoints,
-    double size,
-    Random random)
-  {
-    return Enumerable
-      .Range(0, numberOfPoints)
-      .Select(_ => (SimplePoint)Vector128.Create(
-        random.NextDouble() * size,
-        random.NextDouble() * size))
-      .ToList();
   }
 }

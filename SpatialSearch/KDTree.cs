@@ -144,6 +144,6 @@ internal class KDTreeOptimized<T> : ISpatialSearch<T> where T : IPoint
     return candidate;
   }
 
-  public override string ToString() => Count.ToString();
+  public override string ToString() => $"{nameof(KDTree)}<{typeof(T).Name}> N: {Count}";
 
 }
