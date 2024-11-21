@@ -45,6 +45,7 @@ public abstract class Benchmark
 }
 
 [MemoryDiagnoser]
+[MarkdownExporterAttribute.GitHub]
 [GenericTypeArguments(typeof(BasicSearch))]
 [GenericTypeArguments(typeof(QuadTree))]
 [GenericTypeArguments(typeof(KDTree))]
