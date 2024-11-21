@@ -10,12 +10,7 @@ public class QuadTree : ISpatialSearch
   public static ISpatialSearch<T> Build<T>(IEnumerable<T> points)
   where T : IPoint
   {
-    var max = points.MaxCoordinates();
-    var min = points.MinCoordinates();
-    var center = (max + min) * 0.5;
-    var size2 = max - min;
-    var size = Math.Max(size2[0], size2[1]);
-    var root = new QuadTree<T>(center, size);
+    var root = new QuadTree<T>(points.GetBoundingBox());
     foreach (var point in points)
       root.AddPoint(point);
     return root;
@@ -25,23 +20,17 @@ public class QuadTree : ISpatialSearch
 internal class QuadTree<T> : ISpatialSearch<T> where T : IPoint
 {
   private static readonly Vector128<long> Base2Indices = Vector128.Create(1L, 2L);
-  private static readonly Vector128<long> One = Vector128.Create(1.0, 1.0).AsInt64();
-  private static readonly Vector128<long> MinusOne = Vector128.Create(-1.0, -1.0).AsInt64();
 
   private readonly QuadTree<T>[] Children = new QuadTree<T>[4];
-  private readonly double Radius;
-  private readonly Vector128<double> Center;
-  private readonly double Size;
+  private readonly BoundingBox BoundingBox;
 
   private int NumberOfPoints;
   private T? InnerPoint;
   private Vector128<double> InnerPointVector;
 
-  internal QuadTree(Vector128<double> center, double size)
+  internal QuadTree(BoundingBox boundingBox)
   {
-    Center = center;
-    Size = size;
-    Radius = Math.Sqrt(Size * Size * 0.5);
+    BoundingBox = boundingBox;
   }
 
   public void AddPoint(T point)
@@ -60,14 +49,13 @@ internal class QuadTree<T> : ISpatialSearch<T> where T : IPoint
 
   private void AddToChild(T point)
   {
-    var gt = Vector128.GreaterThan(point.ToVector128(), Center).AsInt64();
-    var childIndex = Vector128.Sum(Base2Indices & gt);
+    var gtd = Vector128.GreaterThan(point.ToVector128(), BoundingBox.Center);
+    var gtl = gtd.AsInt64();
+    var childIndex = Vector128.Sum(Base2Indices & gtl);
     var child = Children[childIndex];
     if (null == child)
     {
-      var direction = (One & gt).AsDouble() + (MinusOne & ~gt).AsDouble();
-      var childCenter = Center + direction * Size * 0.25;
-      child = new QuadTree<T>(childCenter, Size * 0.5);
+      child = new QuadTree<T>(BoundingBox.GetChild(~gtd));
       Children[childIndex] = child;
     }
     child.AddPoint(point);
@@ -93,6 +81,7 @@ internal class QuadTree<T> : ISpatialSearch<T> where T : IPoint
     var stack = new Stack<QuadTree<T>>();
     stack.Push(this);
     var vector = point.ToVector128();
+    var circle = new Circle(vector, radius);
     while (stack.Count > 0)
     {
       var node = stack.Pop();
@@ -104,10 +93,9 @@ internal class QuadTree<T> : ISpatialSearch<T> where T : IPoint
       }
       else
       {
-        var distance = vector.Distance(node.Center);
-        if (distance < radius + node.Radius)
-          foreach (var child in node.Children)
-            if (null != child)
+        foreach (var child in node.Children)
+          if (null != child)
+            if (child.BoundingBox.Intersects(circle))
               stack.Push(child);
       }
     }
@@ -115,11 +103,7 @@ internal class QuadTree<T> : ISpatialSearch<T> where T : IPoint
 
   private (T? Point, double Distance) FindNearest(Vector128<double> point, double minDistance)
   {
-    var distanceFromCenter = point.DistanceSquared(Center);
-    var maxDistanceSquared = minDistance + Radius;
-    maxDistanceSquared *= maxDistanceSquared;
-
-    if (distanceFromCenter > maxDistanceSquared)
+    if (!BoundingBox.Intersects(new Circle(point, minDistance)))
       return (default, double.MaxValue);
 
     if (NumberOfPoints == 1)
@@ -127,7 +111,7 @@ internal class QuadTree<T> : ISpatialSearch<T> where T : IPoint
 
     (T?, double) candidate = (default, minDistance);
 
-    var gt = Vector128.GreaterThan(point, Center).AsInt64();
+    var gt = Vector128.GreaterThan(point, BoundingBox.Center).AsInt64();
     var childIndex = Vector128.Sum(Base2Indices & gt);
 
     for (long i = 0; i < 4; i++)

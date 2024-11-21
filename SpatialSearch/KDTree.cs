@@ -121,8 +121,7 @@ internal class KDTree<T> : ISpatialSearch<T> where T : IPoint
   {
     var pointCoordinate = CoordinateSelector(point);
 
-    if (pointCoordinate + minDistance < MinAxixValue ||
-        pointCoordinate - minDistance > MaxAxisValue)
+    if (!BoundingBox.Intersects(new Circle(point, minDistance)))
       return (default, double.MaxValue);
 
     if (Count == 1)

@@ -6,19 +6,22 @@ namespace SpatialSearch;
 
 public struct BoundingBox
 {
-  public Vector128<double> Min;
-  public Vector128<double> Max;
+  public Vector128<double> Min { get; }
+  public Vector128<double> Max { get; }
+  public Vector128<double> Center { get; }
 
   public BoundingBox(IPoint min, IPoint max)
   {
     Min = min.ToVector128();
     Max = max.ToVector128();
+    Center = (Min + Max) * 0.5;
   }
 
   internal BoundingBox(Vector128<double> min, Vector128<double> max)
   {
     Min = min;
     Max = max;
+    Center = (Min + Max) * 0.5;
   }
 
   internal bool Contains(Vector128<double> point)
@@ -44,11 +47,9 @@ public struct BoundingBox
 
   public bool Intersects(Circle circle)
   {
-    var radiusVector = Vector128.Create(circle.Radius);
-    var min = circle.Center - radiusVector;
-    var max = circle.Center + radiusVector;
-    return Vector128.LessThanOrEqualAll(Min, max) &&
-           Vector128.GreaterThanOrEqualAll(Max, min);
+    var p = Vector128.Max(Min, Vector128.Min(circle.Center, Max));
+    var distanceSquared = p.DistanceSquared(circle.Center);
+    return distanceSquared <= circle.Radius * circle.Radius;
   }
 
   public bool Contains(BoundingBox other)
@@ -71,6 +72,33 @@ public struct BoundingBox
           Vector128.Create(center.GetElement(0), Max.GetElement(1))),
         new BoundingBox(center, Max)
       ];
+  }
+
+  internal BoundingBox GetChild(long i)
+  {
+    return i switch
+    {
+      0 => new BoundingBox(
+        Min,
+        Center),
+      1 => new BoundingBox(
+        Min.WithElement(0, Center.GetElement(0)),
+        Max.WithElement(1, Center.GetElement(1))),
+      2 => new BoundingBox(
+        Min.WithElement(1, Center.GetElement(1)),
+        Max.WithElement(0, Center.GetElement(0))),
+      3 => new BoundingBox(
+        Center,
+        Max),
+      _ => throw new ArgumentOutOfRangeException(nameof(i))
+    };
+  }
+
+  internal BoundingBox GetChild(Vector128<double> greaterThanCenter)
+  {
+    var min = Vector128.ConditionalSelect(greaterThanCenter, Min, Center);
+    var max = Vector128.ConditionalSelect(greaterThanCenter, Center, Max);
+    return new BoundingBox(min, max);
   }
 
   internal BoundingBox[] Split(int index, double value)
