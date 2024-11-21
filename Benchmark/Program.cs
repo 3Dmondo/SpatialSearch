@@ -1,4 +1,9 @@
 ﻿using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Order;
+
+#if !DEBUG
+using BenchmarkDotNet.Running;
+#endif
 using SpatialSearch;
 using SpatialSearch.Abstractions;
 using SpatialSearch.Tests;
@@ -40,43 +45,47 @@ public abstract class Benchmark
 }
 
 [MemoryDiagnoser]
-[GenericTypeArguments(typeof(LinearSearch))]
+[GenericTypeArguments(typeof(BasicSearch))]
 [GenericTypeArguments(typeof(QuadTree))]
 [GenericTypeArguments(typeof(KDTree))]
 public class Benchmark<T> : Benchmark where T : ISpatialSearch
 {
-  Random Random = new Random(42);
+  const int Iterations = 10;
   [Params(1_000, 10_000, 100_000)]
   public override int N { get; set; }
   double Radius;
 
   private SimplePoint[]? Points;
-  private SimplePoint testPoint;
+  private SimplePoint[] testPoints;
   private ISpatialSearch<SimplePoint>? SpatialSearch;
+  private PointsGenerator PointsGenerator;
 
   [GlobalSetup]
   public override void GlobalSetup()
   {
+    PointsGenerator = new PointsGenerator(1.0, 42);
     Radius = 2.0 / Math.Sqrt(N);
-    Points = Enumerable
-      .Range(0, N)
-      .Select(_ => (SimplePoint)Vector128
-        .Create(Random.NextDouble(), Random.NextDouble()))
-      .ToArray();
-    testPoint = Vector128.Create(Random.NextDouble(), Random.NextDouble());
+    Points = PointsGenerator.GeneratePoints(N).ToArray();
+    testPoints = PointsGenerator.GeneratePoints(Iterations).ToArray();
     SpatialSearch = T.Build(Points);
   }
 
-  [Benchmark()]
+  [Benchmark(OperationsPerInvoke = Iterations)]
   public override Vector128<double> FindNearest()
   {
-    return SpatialSearch!.FindNearest(testPoint).Item1;
+    var result = Vector128<double>.Zero;
+    for (int i = 0; i < Iterations; i++)
+      result += SpatialSearch!.FindNearest(testPoints[i]).Item1;
+    return result;
   }
 
-  [Benchmark()]
+  [Benchmark(OperationsPerInvoke = Iterations)]
   public override int FindInRadius()
   {
-    return SpatialSearch!.FindInRadius(testPoint, Radius).Count();
+    var result = 0;
+    for (int i = 0; i < Iterations; i++)
+      result += SpatialSearch!.FindInRadius(testPoints[i], Radius).Count();
+    return result;
   }
 
   [Benchmark()]

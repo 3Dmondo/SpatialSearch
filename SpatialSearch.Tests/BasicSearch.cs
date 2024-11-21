@@ -2,7 +2,7 @@
 using SpatialSearch.Extensions;
 
 namespace SpatialSearch.Tests;
-public class LinearSearch : ISpatialSearch
+public class BasicSearch : ISpatialSearch
 {
   public static ISpatialSearch<T> Build<T>(IEnumerable<T> points) where T : IPoint
     => new LinearSearch<T>(points);
@@ -40,6 +40,6 @@ public class LinearSearch<T> : ISpatialSearch<T> where T : IPoint
     }
   }
 
-  public override string ToString() => $"{nameof(LinearSearch)}<{typeof(T).Name}> N: {Points.Count()}";
+  public override string ToString() => $"{nameof(BasicSearch)}<{typeof(T).Name}> N: {Points.Count()}";
 
 }
