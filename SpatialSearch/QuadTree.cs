@@ -152,4 +152,7 @@ internal class QuadTree<T> : ISpatialSearch<T> where T : IPoint
       candidate = nextCandidate;
     return candidate;
   }
+
+  public override string ToString() => $"{nameof(KDTree)}<{typeof(T).Name}> N: {NumberOfPoints}";
+
 }
