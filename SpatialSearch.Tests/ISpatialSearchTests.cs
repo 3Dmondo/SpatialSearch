@@ -19,7 +19,7 @@ public class ISpatialSearchTests<TSpatialSearch>
   {
     var pointsGEnerator = new PointsGenerator(size, randomSeed);
     var points = pointsGEnerator.GeneratePoints(numberOfPoints);
-    var linearSearch = LinearSearch.Build(points);
+    var linearSearch = BasicSearch.Build(points);
     var spatialSearch = TSpatialSearch.Build(points);
     var iteration = 0;
     foreach (var testPoint in pointsGEnerator.GeneratePoints(Iterations))
@@ -49,7 +49,7 @@ public class ISpatialSearchTests<TSpatialSearch>
     var pointsGenerator = new PointsGenerator(1.0, 42);
     var points = pointsGenerator.GeneratePoints(100);
     var testPoint = (SimplePoint)Vector128.Create(20.0, 0.0);
-    var expected = LinearSearch.Build(points).FindNearest(testPoint);
+    var expected = BasicSearch.Build(points).FindNearest(testPoint);
     var nearest = TSpatialSearch.Build(points).FindNearest(testPoint);
     Assert.That(nearest, Is.EqualTo(expected));
   }
@@ -63,7 +63,7 @@ public class ISpatialSearchTests<TSpatialSearch>
     var range = 2.5 * size / Math.Sqrt(numberOfPoints);
     var pointsGenerator = new PointsGenerator(size, randomSeed);
     var points = pointsGenerator.GeneratePoints(numberOfPoints);
-    var linearSearch = LinearSearch.Build(points);
+    var linearSearch = BasicSearch.Build(points);
     var spatialSearch  = TSpatialSearch.Build(points);
     int iteration = 0;
     foreach (var testPoint in pointsGenerator.GeneratePoints(Iterations))
