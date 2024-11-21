@@ -38,7 +38,7 @@ public abstract class Benchmark
   public abstract int N { get; set; }
   public abstract void GlobalSetup();
   public abstract Vector128<double> FindNearest();
-  public abstract int FindInRadius();
+  public abstract double FindInRadius();
   public abstract ISpatialSearch<SimplePoint> Build();
 }
 
@@ -55,17 +55,16 @@ public class Benchmark<T> : Benchmark where T : ISpatialSearch
   double Radius;
 
   private SimplePoint[]? Points;
-  private SimplePoint[] testPoints;
+  private SimplePoint[]? testPoints;
   private ISpatialSearch<SimplePoint>? SpatialSearch;
-  private PointsGenerator PointsGenerator;
 
   [GlobalSetup]
   public override void GlobalSetup()
   {
-    PointsGenerator = new PointsGenerator(1.0, 42);
+    var pointsGenerator = new PointsGenerator(1.0, 42);
     Radius = 2.0 / Math.Sqrt(N);
-    Points = PointsGenerator.GeneratePoints(N).ToArray();
-    testPoints = PointsGenerator.GeneratePoints(Iterations).ToArray();
+    Points = pointsGenerator.GeneratePoints(N).ToArray();
+    testPoints = pointsGenerator.GeneratePoints(Iterations).ToArray();
     SpatialSearch = T.Build(Points);
   }
 
@@ -74,17 +73,17 @@ public class Benchmark<T> : Benchmark where T : ISpatialSearch
   {
     var result = Vector128<double>.Zero;
     for (int i = 0; i < Iterations; i++)
-      result += SpatialSearch!.FindNearest(testPoints[i]).Item1;
-    return result;
+      result += SpatialSearch!.FindNearest(testPoints![i]).Item1;
+    return result / Iterations;
   }
 
   [Benchmark(OperationsPerInvoke = Iterations)]
-  public override int FindInRadius()
+  public override double FindInRadius()
   {
-    var result = 0;
+    var result = 0.0;
     for (int i = 0; i < Iterations; i++)
-      result += SpatialSearch!.FindInRadius(testPoints[i], Radius).Count();
-    return result;
+      result += SpatialSearch!.FindInRadius(testPoints![i], Radius).Count();
+    return result / Iterations;
   }
 
   [Benchmark()]

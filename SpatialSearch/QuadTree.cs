@@ -49,13 +49,12 @@ internal class QuadTree<T> : ISpatialSearch<T> where T : IPoint
 
   private void AddToChild(T point)
   {
-    var gtd = Vector128.GreaterThan(point.ToVector128(), BoundingBox.Center);
-    var gtl = gtd.AsInt64();
-    var childIndex = Vector128.Sum(Base2Indices & gtl);
+    var gt = Vector128.GreaterThan(point.ToVector128(), BoundingBox.Center);
+    var childIndex = Vector128.Sum(Base2Indices & gt.AsInt64());
     var child = Children[childIndex];
     if (null == child)
     {
-      child = new QuadTree<T>(BoundingBox.GetChild(~gtd));
+      child = new QuadTree<T>(BoundingBox.GetChild(gt));
       Children[childIndex] = child;
     }
     child.AddPoint(point);

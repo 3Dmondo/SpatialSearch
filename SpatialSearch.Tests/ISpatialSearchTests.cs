@@ -60,7 +60,7 @@ public class ISpatialSearchTests<TSpatialSearch>
     [Values(0.1, 1.0, 10.0, 100.0)] double size,
     [Values(0, 1, 42)] int randomSeed)
   {
-    var range = 2.5 * size / Math.Sqrt(numberOfPoints);
+    var radius = 2.5 * size / Math.Sqrt(numberOfPoints);
     var pointsGenerator = new PointsGenerator(size, randomSeed);
     var points = pointsGenerator.GeneratePoints(numberOfPoints);
     var linearSearch = BasicSearch.Build(points);
@@ -68,8 +68,8 @@ public class ISpatialSearchTests<TSpatialSearch>
     int iteration = 0;
     foreach (var testPoint in pointsGenerator.GeneratePoints(Iterations))
     {
-      var expectedValues = linearSearch.FindInRadius(testPoint, range);
-      var values = spatialSearch.FindInRadius(testPoint, range);
+      var expectedValues = linearSearch.FindInRadius(testPoint, radius);
+      var values = spatialSearch.FindInRadius(testPoint, radius);
       Assert.That(
         values,
         Is.EquivalentTo(expectedValues),

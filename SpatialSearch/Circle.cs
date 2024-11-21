@@ -6,8 +6,8 @@ namespace SpatialSearch;
 
 public struct Circle
 {
-  internal Vector128<double> Center;
-  internal double Radius;
+  internal readonly Vector128<double> Center;
+  internal readonly double Radius;
 
   public Circle(IPoint center, double radius)
   {
@@ -29,12 +29,10 @@ public struct Circle
 
   public bool Contains(BoundingBox boundingBox)
   {
-    var minMax = Vector128.Create(boundingBox.Min.GetElement(0), boundingBox.Max.GetElement(1));
-    var maxMin = Vector128.Create(boundingBox.Max.GetElement(0), boundingBox.Min.GetElement(1));
-    return boundingBox.Min.Distance(Center) <= Radius &&
-           boundingBox.Max.Distance(Center) <= Radius &&
-           minMax.Distance(Center) <= Radius &&
-           maxMin.Distance(Center) < Radius;
+    var gt= Vector128.GreaterThan(Center, boundingBox.Center);
+    var furthestCorner = Vector128.ConditionalSelect(gt, boundingBox.Min, boundingBox.Max);
+    var distanceSquared = Center.DistanceSquared(furthestCorner);
+    return distanceSquared <= Radius * Radius;
   }
 
   public bool Intersects(BoundingBox boundingBox)

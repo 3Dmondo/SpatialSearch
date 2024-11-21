@@ -96,20 +96,4 @@ public class BoundingBoxTests
     Assert.That(result, Is.False);
   }
 
-  [Test]
-  public void Split_BoundingBox_ReturnsFourSubBoxes()
-  {
-    var min = Vector128.Create(0.0, 0.0);
-    var max = Vector128.Create(10.0, 10.0);
-    var boundingBox = new BoundingBox(min, max);
-
-    var subBoxes = boundingBox.Split();
-
-    Assert.That(subBoxes.Length, Is.EqualTo(4));
-    Assert.That(subBoxes[0].Contains(Vector128.Create(2.5, 2.5)), Is.True);
-    Assert.That(subBoxes[1].Contains(Vector128.Create(7.5, 2.5)), Is.True);
-    Assert.That(subBoxes[2].Contains(Vector128.Create(2.5, 7.5)), Is.True);
-    Assert.That(subBoxes[3].Contains(Vector128.Create(7.5, 7.5)), Is.True);
-  }
-
 }

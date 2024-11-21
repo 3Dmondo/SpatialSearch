@@ -6,9 +6,9 @@ namespace SpatialSearch;
 
 public struct BoundingBox
 {
-  public Vector128<double> Min { get; }
-  public Vector128<double> Max { get; }
-  public Vector128<double> Center { get; }
+  internal readonly Vector128<double> Min { get; }
+  internal readonly Vector128<double> Max { get; }
+  internal readonly Vector128<double> Center { get; }
 
   public BoundingBox(IPoint min, IPoint max)
   {
@@ -30,15 +30,6 @@ public struct BoundingBox
            Vector128.LessThanOrEqualAll(point, Max);
   }
 
-  internal bool Contains(Circle circle)
-  {
-    var radiusVector = Vector128.Create(circle.Radius);
-    var min = Min - radiusVector;
-    var max = Max + radiusVector;
-    return Vector128.GreaterThanOrEqualAll(circle.Center, min) &&
-           Vector128.LessThanOrEqualAll(circle.Center, max);
-  }
-
   public bool Intersects(BoundingBox other)
   {
     return Vector128.LessThanOrEqualAll(Min, other.Max) &&
@@ -58,46 +49,10 @@ public struct BoundingBox
            Vector128.LessThanOrEqualAll(other.Max, Max);
   }
 
-  internal BoundingBox[] Split()
-  {
-    var center = (Min + Max) * 0.5;
-    return
-      [
-        new BoundingBox(Min, center),
-        new BoundingBox(
-          Vector128.Create(center.GetElement(0), Min.GetElement(1)),
-          Vector128.Create(Max.GetElement(0), center.GetElement(1))),
-        new BoundingBox(
-          Vector128.Create(Min.GetElement(0), center.GetElement(1)),
-          Vector128.Create(center.GetElement(0), Max.GetElement(1))),
-        new BoundingBox(center, Max)
-      ];
-  }
-
-  internal BoundingBox GetChild(long i)
-  {
-    return i switch
-    {
-      0 => new BoundingBox(
-        Min,
-        Center),
-      1 => new BoundingBox(
-        Min.WithElement(0, Center.GetElement(0)),
-        Max.WithElement(1, Center.GetElement(1))),
-      2 => new BoundingBox(
-        Min.WithElement(1, Center.GetElement(1)),
-        Max.WithElement(0, Center.GetElement(0))),
-      3 => new BoundingBox(
-        Center,
-        Max),
-      _ => throw new ArgumentOutOfRangeException(nameof(i))
-    };
-  }
-
   internal BoundingBox GetChild(Vector128<double> greaterThanCenter)
   {
-    var min = Vector128.ConditionalSelect(greaterThanCenter, Min, Center);
-    var max = Vector128.ConditionalSelect(greaterThanCenter, Center, Max);
+    var min = Vector128.ConditionalSelect(greaterThanCenter, Center, Min);
+    var max = Vector128.ConditionalSelect(greaterThanCenter, Max, Center);
     return new BoundingBox(min, max);
   }
 

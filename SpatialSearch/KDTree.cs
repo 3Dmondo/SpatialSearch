@@ -1,6 +1,8 @@
 ﻿using SpatialSearch.Abstractions;
 using SpatialSearch.Extensions;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics;
 
 namespace SpatialSearch;
@@ -37,6 +39,7 @@ internal class KDTree<T> : ISpatialSearch<T> where T : IPoint
     BoundingBox = boundingBox;
 
     var span = points.Span;
+
     MinAxixValue = double.MaxValue;
     MaxAxisValue = double.MinValue;
     for (int i = 0; i < span.Length; i++)
@@ -46,7 +49,6 @@ internal class KDTree<T> : ISpatialSearch<T> where T : IPoint
       MinAxixValue = Math.Min(MinAxixValue, coordinate);
       MaxAxisValue = Math.Max(MaxAxisValue, coordinate);
     }
-
 
     if (Count > 1)
     {
@@ -83,15 +85,15 @@ internal class KDTree<T> : ISpatialSearch<T> where T : IPoint
 
   public IEnumerable<(T Point, double Distance)> FindInRadius(IPoint point, double radius)
   {
-    var stack = new Stack<KDTree<T>>();
-    stack.Push(this);
     var vector = point.ToVector128();
     var circle = new Circle(vector, radius);
+    if (!BoundingBox.Intersects(circle))
+      yield break;
+    var stack = new Stack<KDTree<T>>();
+    stack.Push(this);
     while (stack.Count > 0)
     {
       var node = stack.Pop();
-      if (!node.BoundingBox.Intersects(circle))
-        continue;
       if (node.Count == 1)
       {
         var value = node.Points.Span[0];
@@ -102,17 +104,23 @@ internal class KDTree<T> : ISpatialSearch<T> where T : IPoint
       {
         if (circle.Contains(node.BoundingBox))
         {
-          for (int i = 0; i < node.Points.Span.Length; i++)
-          {
-            var value = node.Points.Span[i];
-            if (circle.Contains(value, out var distance))
-              yield return (value, distance);
-          }
+          if (MemoryMarshal.TryGetArray<T>(node.Points, out var arraySegment))
+            foreach (var value in arraySegment)
+            {
+              var distance = value.ToVector128().Distance(vector);
+              if (distance <= radius)
+                yield return (value, distance);
+              else
+                throw new UnreachableException();
+            }
+          else
+            throw new UnreachableException();
         }
         else
           foreach (var child in node.Children)
             if (null != child)
-              stack.Push(child);
+              if (child.BoundingBox.Intersects(circle))
+                stack.Push(child);
       }
     }
   }
