@@ -1,22 +1,23 @@
 ﻿using SpatialSearch.Abstractions;
 using SpatialSearch.Extensions;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.Intrinsics;
 
 namespace SpatialSearch;
 
-public class KDTree : ISpatialSearch
+public class KDTree2 : ISpatialSearch
 {
   public static ISpatialSearch<T> Build<T>(IEnumerable<T> points) where T : IPoint
   {
     var boundingBox = points.GetBoundingBox();
-    return new KDTree<T>(points.ToArray().AsMemory(), boundingBox, 0);
+    return new KDTree2<T>(points.ToArray().AsMemory(), boundingBox, 0);
   }
 }
 
-internal class KDTree<T> : ISpatialSearch<T> where T : IPoint
+internal class KDTree2<T> : ISpatialSearch<T> where T : IPoint
 {
-  private readonly KDTree<T>[] Children = new KDTree<T>[2];
+  private readonly KDTree2<T>[] Children = new KDTree2<T>[2];
   private readonly Memory<T> Points;
   private readonly int Depth;
   private readonly int Count;
@@ -27,7 +28,7 @@ internal class KDTree<T> : ISpatialSearch<T> where T : IPoint
   private BoundingBox BoundingBox;
   private T? InnerPoint;
   private Vector128<double> InnerPointVector;
-  public KDTree(
+  public KDTree2(
     Memory<T> points,
     BoundingBox boundingBox,
     int depth)
@@ -57,11 +58,11 @@ internal class KDTree<T> : ISpatialSearch<T> where T : IPoint
 
       var subBoundingBoxes = boundingBox.Split(Depth & 1, Pivot);
 
-      Children[0] = new KDTree<T>(
+      Children[0] = new KDTree2<T>(
         Points[..pivotIndex],
         subBoundingBoxes.Left,
         depth + 1);
-      Children[1] = new KDTree<T>(
+      Children[1] = new KDTree2<T>(
         Points[pivotIndex..],
         subBoundingBoxes.Right,
         depth + 1);
@@ -90,11 +91,12 @@ internal class KDTree<T> : ISpatialSearch<T> where T : IPoint
 
   public IEnumerable<(T Point, double Distance)> FindInRadius(IPoint point, double radius)
   {
+    var result = new List<(T Point, double Distance)>();
     var vector = point.ToVector128();
     var circle = new Circle(vector, radius);
     if (!BoundingBox.Intersects(circle))
-      yield break;
-    var stack = new Stack<KDTree<T>>();
+      return result;
+    var stack = new Stack<KDTree2<T>>();
     stack.Push(this);
     while (stack.Count > 0)
     {
@@ -102,16 +104,29 @@ internal class KDTree<T> : ISpatialSearch<T> where T : IPoint
       if (node.Count == 1)
       {
         if (circle.Contains(node.InnerPointVector, out var distance))
-          yield return (node.InnerPoint!, distance);
+          result.Add((node.InnerPoint!, distance));
       }
       else
       {
-        foreach (var child in node.Children)
-          if (null != child)
-            if (child.BoundingBox.Intersects(circle))
-              stack.Push(child);
+        if (circle.Contains(node.BoundingBox))
+        {
+          foreach (var value in node.Points.ToArray())
+          {
+            var distance = value.ToVector128().Distance(vector);
+            if (distance <= radius)
+              result.Add((value, distance));
+            else
+              throw new UnreachableException();
+          }
+        }
+        else
+          foreach (var child in node.Children)
+            if (null != child)
+              if (child.BoundingBox.Intersects(circle))
+                stack.Push(child);
       }
     }
+    return result;
   }
 
   private (T? Point, double Distance) FindNearest(Vector128<double> point, double minDistance)
@@ -136,7 +151,7 @@ internal class KDTree<T> : ISpatialSearch<T> where T : IPoint
 
   [MethodImpl(MethodImplOptions.AggressiveInlining)]
   private static (T? candidate, double mindistance) UpdateCandidateIfCloser(
-    KDTree<T> child,
+    KDTree2<T> child,
     Vector128<double> point,
     (T?, double Distance) candidate)
   {

@@ -23,7 +23,12 @@ public struct Circle
 
   public bool Contains(IPoint point, out double distance)
   {
-    distance = Center.Distance(point.ToVector128());
+    return Contains(point.ToVector128(), out distance);
+  }
+
+  internal bool Contains(Vector128<double> point, out double distance)
+  {
+    distance = Center.Distance(point);
     return distance <= Radius;
   }
 

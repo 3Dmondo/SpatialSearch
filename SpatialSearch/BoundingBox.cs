@@ -11,11 +11,7 @@ public struct BoundingBox
   internal readonly Vector128<double> Center { get; }
 
   public BoundingBox(IPoint min, IPoint max)
-  {
-    Min = min.ToVector128();
-    Max = max.ToVector128();
-    Center = (Min + Max) * 0.5;
-  }
+    : this(min.ToVector128(), max.ToVector128()) { }
 
   internal BoundingBox(Vector128<double> min, Vector128<double> max)
   {
@@ -56,12 +52,12 @@ public struct BoundingBox
     return new BoundingBox(min, max);
   }
 
-  internal BoundingBox[] Split(int index, double value)
+  internal (BoundingBox Left, BoundingBox Right) Split(int index, double value)
   {
     return
-      [
+      (
         new BoundingBox(Min, Max.WithElement(index, value)),
         new BoundingBox(Min.WithElement(index, value), Max)
-      ];
+      );
   }
 }

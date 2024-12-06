@@ -88,4 +88,32 @@ public static class PointExtensions
     => points.Aggregate(
       MaxValue,
       (acc, point) => Vector128.Min(acc, point.ToVector128()));
+
+
+  private const double EarthRadiusKm = 6371.0;
+
+  public static double ToRadians(this double degrees)
+  {
+    return degrees * (Math.PI / 180.0);
+  }
+
+  public static double GrandCircleDistance(this IPoint point1, IPoint point2)
+  {
+    double lat1 = point1.Y.ToRadians();
+    double lon1 = point1.X.ToRadians();
+
+    double lat2 = point2.Y.ToRadians();
+    double lon2 = point2.X.ToRadians();
+
+    double dlat = lat2 - lat1;
+    double dlon = lon2 - lon1;
+
+    double a = Math.Sin(dlat / 2) * Math.Sin(dlat / 2) +
+               Math.Cos(lat1) * Math.Cos(lat2) *
+               Math.Sin(dlon / 2) * Math.Sin(dlon / 2);
+
+    double c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+
+    return EarthRadiusKm * c;
+  }
 }
